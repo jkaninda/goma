@@ -12,7 +12,7 @@ object Goma {
     private var URL: String = ""
     private val queue by lazy { Volley.newRequestQueue(appContext) }
     private var params: HashMap<String, String> = HashMap()
-    private var headers: HashMap<String, String> = HashMap()
+    private var _headers: HashMap<String, String> = HashMap()
     private var TAG="Goma"
 
 
@@ -43,7 +43,7 @@ object Goma {
  * @param listener Object:OnResponseListener({
  * })
  */
-    fun get(path: String, parameters: HashMap<String, String>? = HashMap(), listener: OnResponseListener?) {
+    fun get(path: String, listener: OnResponseListener?) {
 
         val req = StringRequest(
             Request.Method.GET,
@@ -71,14 +71,18 @@ object Goma {
      * })
      */
     fun post(
-        path: String, headers:HashMap<String,String>,
+        path: String, headers: HashMap<String, String>?= null,
         parameters: HashMap<String, String>? = null,
         listener: OnResponseListener?
     ) {
         if (parameters != null) {
             params = parameters
         }
-        postRequest("$URL${checkPath(path)}", headers, params, listener)
+        if (headers != null){
+            _headers=headers
+        }
+            postRequest("$URL${checkPath(path)}", _headers, params, listener)
+
 
     }
 
@@ -91,14 +95,17 @@ object Goma {
      * })
      */
     fun del(
-        path: String, headers: HashMap<String, String>,
+        path: String, headers: HashMap<String, String>? =null,
         parameters: HashMap<String, String>? = null,
         listener: OnResponseListener?
     ) {
         if (parameters != null) {
             params = parameters
         }
-        delRequest("$URL${checkPath(path)}",headers, params, listener)
+        if (headers != null) {
+            _headers=headers
+        }
+        delRequest("$URL${checkPath(path)}",_headers, params, listener)
 
     }
 
@@ -110,14 +117,17 @@ object Goma {
      * })
      */
     fun put(
-        path: String,headers:HashMap<String,String>,
+        path: String,headers:HashMap<String,String>? =null,
         parameters: HashMap<String, String>? = HashMap(),
         listener: OnResponseListener?
     ) {
         if (parameters != null) {
             params = parameters
         }
-        putRequest("$URL${checkPath(path)}",headers, params, listener)
+        if (headers != null){
+            _headers=headers
+        }
+        putRequest("$URL${checkPath(path)}",_headers, params, listener)
 
 
     }/**
@@ -128,14 +138,17 @@ object Goma {
      * })
      */
     fun patch(
-        path: String,headers:HashMap<String,String>,
+        path: String,headers:HashMap<String,String>? =null,
         parameters: HashMap<String, String>? = HashMap(),
         listener: OnResponseListener?
     ) {
         if (parameters != null) {
             params = parameters
         }
-        patchRequest("$URL${checkPath(path)}",headers, params, listener)
+        if (headers != null){
+            _headers=headers
+        }
+        patchRequest("$URL${checkPath(path)}",_headers, params, listener)
 
 
     }
@@ -154,7 +167,7 @@ object Goma {
 
 
     private fun postRequest(
-        path: String,headers:HashMap<String,String>,
+        path: String,headers:HashMap<String,String>?,
         parameters: HashMap<String, String>,
         listener: OnResponseListener?
     ) {
