@@ -57,8 +57,13 @@ class Serializer {
 
 
     fun fetchJson( jsonString:String?): JSONObject {
-        return JSONObject(jsonString!!)
-    }
+        if (jsonString!=null){
+
+         return   JSONObject(jsonString)
+            
+        }
+        return JSONObject("null")
+        }
 
 
 }
