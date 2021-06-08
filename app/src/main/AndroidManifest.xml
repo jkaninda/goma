@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.jkantech.gomaexample">
+    package="com.jkaninda.gomaexample">
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
@@ -13,7 +13,7 @@
         android:usesCleartextTraffic="true"
         android:theme="@style/Theme.GomaExample"
         tools:targetApi="m">
-        <activity android:name=".MainActivity">
+        <activity android:name="com.jkaninda.gomaexample.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

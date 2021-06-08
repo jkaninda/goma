@@ -1,4 +1,4 @@
-package com.jkantech.gomaexample
+package com.jkaninda.gomaexample
 
 import org.junit.Test
 

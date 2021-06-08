@@ -1,4 +1,4 @@
-package com.github.jkantech.goma
+package com.github.jkaninda.goma
 
 interface OnResponseListener {
     fun onSuccess(response: String?)

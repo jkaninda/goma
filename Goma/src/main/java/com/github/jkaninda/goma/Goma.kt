@@ -1,11 +1,11 @@
-package com.github.jkantech.goma
+package com.github.jkaninda.goma
 
 import android.content.Context
 import android.util.Log
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
-import com.github.jkantech.goma.internal.RequestFactory
+import com.github.jkaninda.goma.internal.RequestFactory
 
 object Goma {
     private lateinit var appContext: Context

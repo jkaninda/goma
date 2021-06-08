@@ -42,7 +42,7 @@ GET, POST, PUT, DELETE
     }
 	
     dependencies {
-	        implementation 'com.github.jkantech:goma:1.0.2'
+	        implementation 'jkaninda:goma:1.0.2'
 		}
 ```
 
@@ -57,7 +57,7 @@ GET, POST, PUT, DELETE
     }
 	
     dependencies {
-	        implementation 'com.github.jkantech:goma:1.0.2'
+	        implementation 'jkaninda:goma:1.0.2'
 		}
  ```
  ### Manifests

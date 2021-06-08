@@ -1,4 +1,4 @@
-package com.github.jkantech.goma.Serializer
+package com.github.jkaninda.goma.Serializer
 
 import com.google.gson.GsonBuilder
 import org.json.JSONObject
