@@ -111,24 +111,42 @@ func loadConf(configFile string) (*Gateway, error) {
 		}
 		return &c.GatewayConfig, err
 	}
-	return nil, fmt.Errorf("configuration file not found: %v", configFile)
+	logger.Error("configuration file not found: %v", configFile)
+	logger.Info("Generating new configuration file...")
+	initConfig(ConfigFile)
+	buf, err := os.ReadFile(ConfigFile)
+	if err != nil {
+		return nil, err
+	}
+	c := &GatewayConfig{}
+	err = yaml.Unmarshal(buf, c)
+	if err != nil {
+		return nil, fmt.Errorf("in file %q: %w", ConfigFile, err)
+	}
+	logger.Info("Generating new configuration file...done")
+	logger.Info("Starting server with default configuration")
+	return &c.GatewayConfig, err
+	//return nil, fmt.Errorf("configuration file not found: %v", configFile)
 }
 func getConfigFile() string {
 	return util.GetStringEnv("GOMA_PROXY_CONFIG_FILE", ConfigFile)
 }
 func InitConfig(cmd *cobra.Command) {
-	initConfig(cmd)
+	configFile, _ := cmd.Flags().GetString("config")
+	if configFile == "" {
+		configFile = getConfigFile()
+	}
+	initConfig(configFile)
 	return
 
 }
-func initConfig(cmd *cobra.Command) {
-	configFile, _ := cmd.Flags().GetString("config")
+func initConfig(configFile string) {
 	if configFile == "" {
 		configFile = getConfigFile()
 	}
 	conf := &GatewayConfig{
 		GatewayConfig: Gateway{
-			ListenAddr:   "localhost:8080",
+			ListenAddr:   "0.0.0.0:8080",
 			WriteTimeout: 15,
 			ReadTimeout:  15,
 			IdleTimeout:  60,
@@ -142,7 +160,7 @@ func initConfig(cmd *cobra.Command) {
 					Name:        "HealthCheck",
 					Path:        "/healthy",
 					Destination: "http://localhost:8080",
-					Rewrite:     "/",
+					Rewrite:     "/health",
 					HealthCheck: "",
 					Middlewares: []Middleware{
 						{
@@ -150,12 +168,24 @@ func initConfig(cmd *cobra.Command) {
 						},
 					},
 				},
+				{
+					Name:        "Hello",
+					Path:        "/hello",
+					Destination: "http://localhost:8080",
+					Rewrite:     "/",
+					HealthCheck: "",
+					Middlewares: []Middleware{
+						{},
+						{Path: ""},
+					},
+					Blocklist: []string{},
+				},
 			},
 		},
 	}
 	yamlData, err := yaml.Marshal(&conf)
 	if err != nil {
-		logger.Fatal("Error %v", err.Error())
+		logger.Fatal("Error serializing configuration %v", err.Error())
 	}
 	err = os.WriteFile(configFile, yamlData, 0644)
 	if err != nil {

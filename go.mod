@@ -16,6 +16,7 @@ require (
 )
 
 require (
+	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be // indirect
 	github.com/go-redis/redis v6.15.9+incompatible // indirect
 	github.com/go-redis/redis_rate v6.5.0+incompatible // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect

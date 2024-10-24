@@ -7,7 +7,8 @@
 package cmd
 
 import (
-	"github.com/jkaninda/goma-gateway/util"
+	"github.com/jkaninda/goma-gateway/internal/logger"
+	"github.com/jkaninda/goma-gateway/pkg"
 	"github.com/spf13/cobra"
 )
 
@@ -16,9 +17,9 @@ var StopCmd = &cobra.Command{
 	Short: "Stop server",
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
-			//pkg.Start(cmd)
+			pkg.Stop()
 		} else {
-			util.Fatal(`"migrate" accepts no argument %q`, args)
+			logger.Fatal(`"stop" accepts no argument %q`, args)
 
 		}
 

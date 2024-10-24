@@ -11,8 +11,7 @@ import (
 
 func Start(cmd *cobra.Command) {
 	log.SetOutput(os.Stdout)
-	log.Println("Starting Goma Gateway...")
-	logger.Info("Initializing routes...")
+	Intro()
 	configFile, _ := cmd.Flags().GetString("config")
 	if configFile == "" {
 		configFile = getConfigFile()
@@ -21,6 +20,7 @@ func Start(cmd *cobra.Command) {
 	if err != nil {
 		logger.Fatal("Could not load configuration: %v", err)
 	}
+	logger.Info("Initializing routes...")
 	route := gateway.Initialize()
 	server := &http.Server{
 		Addr:         gateway.ListenAddr,
@@ -34,5 +34,8 @@ func Start(cmd *cobra.Command) {
 	if err := server.ListenAndServe(); err != nil {
 		logger.Fatal("Error starting Goma Gateway server: %v", err)
 	}
+
+}
+func Stop() {
 
 }
