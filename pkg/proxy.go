@@ -29,6 +29,7 @@ func ProxyHandler(target, prefix, rewrite string) http.HandlerFunc {
 			}
 			return
 		}
+		util.Info("%s %s %s %s", r.Method, r.RemoteAddr, r.URL, r.UserAgent())
 		// Create a reverse proxy
 		proxy := httputil.NewSingleHostReverseProxy(targetURL)
 		if prefix != "" && rewrite != "" {

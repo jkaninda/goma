@@ -3,7 +3,7 @@ package middleware
 import (
 	"encoding/json"
 	"github.com/jkaninda/goma-gateway/util"
-	"log"
+	"io"
 	"net/http"
 	"net/url"
 	"sync"
@@ -36,9 +36,10 @@ type ProxyResponseError struct {
 
 // AuthenticationMiddleware  Define our struct
 type AuthenticationMiddleware struct {
-	AuthURL string
-	Headers map[string]string
-	Params  map[string]string
+	AuthURL         string
+	RequiredHeaders []string
+	Headers         map[string]string
+	Params          map[string]string
 }
 type BlockListMiddleware struct {
 	Prefix string
@@ -48,32 +49,42 @@ type BlockListMiddleware struct {
 // AuthMiddleware function, which will be called for each request
 func (amw *AuthenticationMiddleware) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		util.Info("%s: %s %s", r.RemoteAddr, r.RequestURI, r.UserAgent())
-		token := r.Header.Get("Authorization")
-		if token == "" {
-			log.Println("Missing Authorization header")
+		for _, header := range amw.RequiredHeaders {
+			if r.Header.Get(header) == "" {
+				util.Error("Missing %s header", header)
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusForbidden)
+				err := json.NewEncoder(w).Encode(map[string]interface{}{
+					"success": false,
+					"code":    http.StatusForbidden,
+					"message": "Missing Authorization header",
+				})
+				if err != nil {
+					return
+				}
+				return
+			}
+		}
+		//token := r.Header.Get("Authorization")
+		authURL, err := url.Parse(amw.AuthURL)
+		if err != nil {
+			util.Error("Error parsing auth URL: %v", err)
 			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusForbidden)
+			w.WriteHeader(http.StatusInternalServerError)
 			err := json.NewEncoder(w).Encode(map[string]interface{}{
 				"success": false,
-				"code":    http.StatusForbidden,
-				"message": "Missing Authorization header",
+				"code":    http.StatusInternalServerError,
+				"message": "Internal Server Error",
 			})
 			if err != nil {
 				return
 			}
 			return
 		}
-		authURL, err := url.Parse(amw.AuthURL)
-		if err != nil {
-			util.Info("Error parsing auth URL: %v", err)
-			http.Error(w, "Error parsing auth URL", http.StatusInternalServerError)
-			return
-		}
 		// Create a new request for /authentication
 		authReq, err := http.NewRequest("GET", authURL.String(), nil)
 		if err != nil {
-			util.Info("Error creating auth request: %v", err)
+			util.Error("Error creating auth request: %v", err)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusInternalServerError)
 			err := json.NewEncoder(w).Encode(map[string]interface{}{
@@ -113,8 +124,12 @@ func (amw *AuthenticationMiddleware) AuthMiddleware(next http.Handler) http.Hand
 			}
 			return
 		}
-		defer authResp.Body.Close()
-		util.Info("Successfully authenticated")
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+
+			}
+		}(authResp.Body)
 		// Inject specific header tp the current request's header
 		// Add header to the next request from AuthRequest header, depending on your requirements
 		if amw.Headers != nil {
