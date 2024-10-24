@@ -50,6 +50,8 @@ type Route struct {
 	Rewrite string `yaml:"rewrite"`
 	// Destination Defines backend URL
 	Destination string `yaml:"destination"`
+	// Cors contains the route cors headers
+	Cors map[string]string `yaml:"cors"`
 	// HealthCheck Defines the backend is health check
 	HealthCheck string `yaml:"healthCheck"`
 	// Blocklist Defines route blacklist
@@ -72,7 +74,7 @@ type Gateway struct {
 	IdleTimeout int `yaml:"idleTimeout"`
 	// RateLimiter Defines routes rateLimiter
 	RateLimiter int `yaml:"rateLimiter"`
-	// Headers contains the proxy headers
+	// Cors contains the proxy headers
 	//
 	//e.g:
 	//
@@ -80,8 +82,8 @@ type Gateway struct {
 	//
 	//    Access-Control-Allow-Methods: 'GET, POST, PUT, DELETE, OPTIONS'
 	//
-	//    Access-Control-Allow-Headers: 'Content-Type, Authorization'
-	Headers map[string]string `yaml:"headers"`
+	//    Access-Control-Allow-Cors: 'Content-Type, Authorization'
+	Cors map[string]string `yaml:"cors"`
 	// Routes defines the proxy routes
 	Routes []Route `yaml:"routes"`
 }
@@ -150,9 +152,9 @@ func initConfig(configFile string) {
 			WriteTimeout: 15,
 			ReadTimeout:  15,
 			IdleTimeout:  60,
-			Headers: map[string]string{
+			Cors: map[string]string{
 				"Access-Control-Allow-Origin":  "*",
-				"Access-Control-Allow-Headers": "*",
+				"Access-Control-Allow-Cors":    "*",
 				"Access-Control-Allow-Methods": "*",
 			},
 			Routes: []Route{
@@ -162,6 +164,7 @@ func initConfig(configFile string) {
 					Destination: "http://localhost:8080",
 					Rewrite:     "/health",
 					HealthCheck: "",
+					Cors:        map[string]string{},
 					Middlewares: []Middleware{
 						{
 							Path: "/admin",

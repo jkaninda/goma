@@ -11,12 +11,12 @@ import (
 // CORSHandler handles CORS headers for incoming requests
 //
 // Adds CORS headers to the response dynamically based on the provided headers map[string]string
-func CORSHandler(headers map[string]string) mux.MiddlewareFunc {
+func CORSHandler(cors map[string]string) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Set CORS headers from the headers
-			if headers != nil {
-				for k, v := range headers {
+			// Set CORS headers from the cors config
+			if cors != nil {
+				for k, v := range cors {
 					w.Header().Set(k, v)
 				}
 			}

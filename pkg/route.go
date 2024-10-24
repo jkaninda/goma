@@ -31,7 +31,7 @@ func (gateway Gateway) Initialize() *mux.Router {
 		if route.Middlewares != nil {
 			for _, mid := range route.Middlewares {
 				secureRouter := r.PathPrefix(route.Path + mid.Path).Subrouter()
-				secureRouter.Use(CORSHandler(gateway.Headers)) // Apply CORS middleware
+				secureRouter.Use(CORSHandler(route.Cors)) // Apply CORS middleware
 				amw := middleware.AuthenticationMiddleware{
 					AuthURL:         mid.Http.URL,
 					RequiredHeaders: mid.Http.RequiredHeaders,
@@ -46,7 +46,7 @@ func (gateway Gateway) Initialize() *mux.Router {
 			}
 		}
 		router := r.PathPrefix(route.Path).Subrouter()
-		router.Use(CORSHandler(gateway.Headers)) // Apply CORS middleware
+		router.Use(CORSHandler(gateway.Cors)) // Apply CORS middleware
 		router.PathPrefix("/").Handler(ProxyHandler(route.Destination, route.Path, route.Rewrite))
 
 	}
