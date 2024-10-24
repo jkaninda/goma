@@ -33,7 +33,7 @@ func CORSHandler(headers map[string]string) mux.MiddlewareFunc {
 
 // ProxyErrorHandler catches backend errors and returns a custom response
 func ProxyErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
-	log.Printf("Backend error: %v", err)
+	log.Printf("Proxy error: %v", err)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusBadGateway)
 	err = json.NewEncoder(w).Encode(map[string]interface{}{
@@ -54,7 +54,7 @@ func (heathRoute HealthCheckRoute) HealthCheckHandler(w http.ResponseWriter, r *
 		if route.HealthCheck != "" {
 			err := HealthCheck(route.Target + route.HealthCheck)
 			if err != nil {
-				util.Error("Route %s: %s", route.Name, err)
+				util.Error("Route %s: %v", route.Name, err)
 				routes = append(routes, HealthCheckRouteResponse{Name: route.Name, Status: "unhealthy"})
 				continue
 			} else {
@@ -75,5 +75,8 @@ func (heathRoute HealthCheckRoute) HealthCheckHandler(w http.ResponseWriter, r *
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	err := json.NewEncoder(w).Encode(response)
+	if err != nil {
+		return
+	}
 }

@@ -112,6 +112,9 @@ func loadConf(configFile string) (*Gateway, error) {
 	}
 	return nil, fmt.Errorf("configuration file not found: %v", configFile)
 }
+func getConfigFile() string {
+	return util.GetStringEnv("GOMA_PROXY_CONFIG_FILE", ConfigFile)
+}
 func InitConfig() {
 	initConfig()
 	return

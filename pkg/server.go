@@ -11,11 +11,11 @@ import (
 
 func Start(cmd *cobra.Command) {
 	log.SetOutput(os.Stdout)
-	// Define the internal auth service handler for /authUser
 	util.Info("Initializing routes...")
+	log.Println("Starting Goma Gateway...")
 	configFile, _ := cmd.Flags().GetString("config")
 	if configFile == "" {
-		configFile = ConfigFile
+		configFile = getConfigFile()
 	}
 	gateway, err := loadConf(configFile)
 	if err != nil {
@@ -30,9 +30,9 @@ func Start(cmd *cobra.Command) {
 		Handler:      route, // Pass our instance of gorilla/mux in.
 	}
 	util.Info("Initializing routes...done")
-	util.Info("Started GomaGateway server on %v", gateway.ListenAddr)
+	util.Info("Started Goma Gateway server on %v", gateway.ListenAddr)
 	if err := server.ListenAndServe(); err != nil {
-		util.Fatal("Error starting GomaGateway server: %v", err)
+		util.Fatal("Error starting Goma Gateway server: %v", err)
 	}
 
 }

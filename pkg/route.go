@@ -58,9 +58,9 @@ func (gateway Gateway) Initialize() *mux.Router {
 
 func printRoute(routes []Route) {
 	t := table.NewWriter()
-	t.AppendHeader(table.Row{"Name", "Path", "Destination"})
+	t.AppendHeader(table.Row{"Name", "Path", "Rewrite", "Destination"})
 	for _, route := range routes {
-		t.AppendRow(table.Row{route.Name, route.Path, route.Target})
+		t.AppendRow(table.Row{route.Name, route.Path, route.Rewrite, route.Target})
 	}
 	fmt.Println(t.Render())
 }
