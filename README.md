@@ -40,7 +40,7 @@ gateway:
         - path: /cart
           #Enables authorization based on the result of a subrequest and sets the URI to which the subrequest will be sent.
           http:
-            url: http://security-server:8080/security/authUser
+            url: http://security-service:8080/security/authUser
             # Required headers, if not present in the request, the proxy will block access
             requiredHeaders:
               - Authorization
@@ -86,7 +86,7 @@ gateway:
     - name: Notification
       path: /notification
       rewrite: /
-      destination: 'http://notification-notification:8080'
+      destination: 'http://notification-service:8080'
       healthCheck: 
       cors: {}
       rateLimiter: 0

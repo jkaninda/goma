@@ -21,7 +21,7 @@ LABEL version=${appVersion}
 LABEL github="github.com/jkaninda/goma-gateway"
 
 
-RUN apk --update add --no-cache tzdata ca-certificates
+RUN apk --update add --no-cache tzdata ca-certificates curl
 RUN mkdir -p ${WORKDIR} ${CERTSDIR} && \
      chmod a+rw ${WORKDIR} ${CERTSDIR}
 COPY --from=build /app/goma /usr/local/bin/goma
