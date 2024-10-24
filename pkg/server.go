@@ -11,8 +11,8 @@ import (
 
 func Start(cmd *cobra.Command) {
 	log.SetOutput(os.Stdout)
-	util.Info("Initializing routes...")
 	log.Println("Starting Goma Gateway...")
+	util.Info("Initializing routes...")
 	configFile, _ := cmd.Flags().GetString("config")
 	if configFile == "" {
 		configFile = getConfigFile()

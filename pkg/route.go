@@ -30,25 +30,25 @@ func (gateway Gateway) Initialize() *mux.Router {
 		r.Use(blM.BlocklistMiddleware)
 		if route.Middlewares != nil {
 			for _, mid := range route.Middlewares {
-				//log.Printf("Mapping '%v' | %v ---> %v", route.Name, route.Path+mid.Path, route.Target)
+				//log.Printf("Mapping '%v' | %v ---> %v", route.Name, route.Path+mid.Path, route.Destination)
 				secureRouter := r.PathPrefix(route.Path + mid.Path).Subrouter()
 				secureRouter.Use(CORSHandler(gateway.Headers)) // Apply CORS middleware
 				amw := middleware.AuthenticationMiddleware{
-					AuthURL:         mid.AuthRequest.URL,
-					RequiredHeaders: mid.AuthRequest.RequiredHeaders,
-					Headers:         mid.AuthRequest.Headers,
-					Params:          mid.AuthRequest.Params,
+					AuthURL:         mid.Http.URL,
+					RequiredHeaders: mid.Http.RequiredHeaders,
+					Headers:         mid.Http.Headers,
+					Params:          mid.Http.Params,
 				}
 				// Apply authentication middleware
 				secureRouter.Use(amw.AuthMiddleware)
-				secureRouter.PathPrefix("/").Handler(ProxyHandler(route.Target, route.Path, route.Rewrite)) // Proxy handler
-				secureRouter.PathPrefix("").Handler(ProxyHandler(route.Target, route.Path, route.Rewrite))  // Proxy handler
+				secureRouter.PathPrefix("/").Handler(ProxyHandler(route.Destination, route.Path, route.Rewrite)) // Proxy handler
+				secureRouter.PathPrefix("").Handler(ProxyHandler(route.Destination, route.Path, route.Rewrite))  // Proxy handler
 
 			}
 		}
 		router := r.PathPrefix(route.Path).Subrouter()
 		router.Use(CORSHandler(gateway.Headers)) // Apply CORS middleware
-		router.PathPrefix("/").Handler(ProxyHandler(route.Target, route.Path, route.Rewrite))
+		router.PathPrefix("/").Handler(ProxyHandler(route.Destination, route.Path, route.Rewrite))
 
 	}
 	printRoute(gateway.Routes)
@@ -58,9 +58,9 @@ func (gateway Gateway) Initialize() *mux.Router {
 
 func printRoute(routes []Route) {
 	t := table.NewWriter()
-	t.AppendHeader(table.Row{"Name", "Path", "Rewrite", "Destination"})
+	t.AppendHeader(table.Row{"Name", "Route", "Rewrite", "Destination"})
 	for _, route := range routes {
-		t.AppendRow(table.Row{route.Name, route.Path, route.Rewrite, route.Target})
+		t.AppendRow(table.Row{route.Name, route.Path, route.Rewrite, route.Destination})
 	}
 	fmt.Println(t.Render())
 }
