@@ -32,16 +32,29 @@ func (gateway Gateway) Initialize() *mux.Router {
 			for _, mid := range route.Middlewares {
 				secureRouter := r.PathPrefix(route.Path + mid.Path).Subrouter()
 				secureRouter.Use(CORSHandler(route.Cors)) // Apply CORS middleware
-				amw := middleware.AuthenticationMiddleware{
-					AuthURL:         mid.Http.URL,
-					RequiredHeaders: mid.Http.RequiredHeaders,
-					Headers:         mid.Http.Headers,
-					Params:          mid.Http.Params,
+				if mid.Http.URL != "" {
+					amw := middleware.AuthenticationMiddleware{
+						AuthURL:         mid.Http.URL,
+						RequiredHeaders: mid.Http.RequiredHeaders,
+						Headers:         mid.Http.Headers,
+						Params:          mid.Http.Params,
+					}
+					// Apply authentication middleware
+					secureRouter.Use(amw.AuthMiddleware)
+					secureRouter.PathPrefix("/").Handler(ProxyHandler(route.Destination, route.Path, route.Rewrite)) // Proxy handler
+					secureRouter.PathPrefix("").Handler(ProxyHandler(route.Destination, route.Path, route.Rewrite))  // Proxy handler
+				} else {
+					if mid.Basic.Username != "" {
+						amw := middleware.BasicAuth{
+							Username: mid.Basic.Username,
+							Password: mid.Basic.Password,
+						}
+						// Apply basic authentication middleware
+						secureRouter.Use(amw.BasicAuthMiddleware())
+						secureRouter.PathPrefix("/").Handler(ProxyHandler(route.Destination, route.Path, route.Rewrite)) // Proxy handler
+						secureRouter.PathPrefix("").Handler(ProxyHandler(route.Destination, route.Path, route.Rewrite))  // Proxy handler
+					}
 				}
-				// Apply authentication middleware
-				secureRouter.Use(amw.AuthMiddleware)
-				secureRouter.PathPrefix("/").Handler(ProxyHandler(route.Destination, route.Path, route.Rewrite)) // Proxy handler
-				secureRouter.PathPrefix("").Handler(ProxyHandler(route.Destination, route.Path, route.Rewrite))  // Proxy handler
 
 			}
 		}
