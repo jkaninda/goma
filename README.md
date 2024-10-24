@@ -1,3 +1,4 @@
 # Goma Gateway
 
- A lightweight APi Gateway
+A lightweight API Gateway, Reverse Proxy
+
