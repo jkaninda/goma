@@ -7,7 +7,7 @@
 package cmd
 
 import (
-	"github.com/jkaninda/goma-gateway/utils"
+	"github.com/jkaninda/goma-gateway/util"
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +18,7 @@ var StopCmd = &cobra.Command{
 		if len(args) == 0 {
 			//pkg.Start(cmd)
 		} else {
-			utils.Fatal(`"migrate" accepts no argument %q`, args)
+			util.Fatal(`"migrate" accepts no argument %q`, args)
 
 		}
 

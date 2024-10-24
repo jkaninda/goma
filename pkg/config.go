@@ -2,9 +2,9 @@ package pkg
 
 import (
 	"fmt"
-	"github.com/jkaninda/goma-gateway/utils"
-	"github.com/spf13/cobra"
+	"github.com/jkaninda/goma-gateway/util"
 	"gopkg.in/yaml.v3"
+	"log"
 	"os"
 )
 
@@ -28,19 +28,23 @@ type Route struct {
 	// E.g. /cart to / => It will rewrite /cart path to /
 	Rewrite string `yaml:"rewrite"`
 	// Target Defines route blacklist
-	Target string `yaml:"target"`
+	Target      string `yaml:"target"`
+	HealthCheck string `yaml:"healthCheck"`
 	// Blocklist Defines route blacklist
 	Blocklist []string `yaml:"blocklist"`
+
 	// Middlewares Defines route middleware
 	Middlewares []Middleware `yaml:"middlewares"`
 }
 type Gateway struct {
-	ListenAddr   string            `yaml:"listenAddr"`
-	WriteTimeout int               `yaml:"writeTimeout"`
-	ReadTimeout  int               `yaml:"readTimeout"`
-	IdleTimeout  int               `yaml:"idleTimeout"`
-	Headers      map[string]string `yaml:"headers"`
-	Routes       []Route           `yaml:"routes"`
+	ListenAddr   string `yaml:"listenAddr"`
+	WriteTimeout int    `yaml:"writeTimeout"`
+	ReadTimeout  int    `yaml:"readTimeout"`
+	IdleTimeout  int    `yaml:"idleTimeout"`
+	// RateLimiter Defines routes rateLimiter
+	RateLimiter int               `yaml:"rateLimiter"`
+	Headers     map[string]string `yaml:"headers"`
+	Routes      []Route           `yaml:"routes"`
 }
 type GatewayConfig struct {
 	GatewayConfig Gateway `yaml:"gateway"`
@@ -60,7 +64,7 @@ type ErrorResponse struct {
 
 // config reads config file and returns Gateway
 func loadConf(configFile string) (*Gateway, error) {
-	if utils.FileExists(configFile) {
+	if util.FileExists(configFile) {
 		buf, err := os.ReadFile(configFile)
 		if err != nil {
 			return nil, err
@@ -75,30 +79,47 @@ func loadConf(configFile string) (*Gateway, error) {
 	}
 	return nil, fmt.Errorf("configuration file not found: %v", configFile)
 }
-func InitConfig(cmd *cobra.Command) {
-	_ = &Gateway{
-		ListenAddr:   "localhost:8080",
-		WriteTimeout: 60,
-		ReadTimeout:  60,
-		IdleTimeout:  60,
-		Headers: map[string]string{
-			"Access-Control-Allow-Origin":  "*",
-			"Access-Control-Allow-Headers": "*",
-			"Access-Control-Allow-Methods": "*",
-		},
-		Routes: []Route{
-			{
-				Name:   "Health",
-				Path:   "/health",
-				Target: "/health",
-				Middlewares: []Middleware{
-					{
-						Path: "/admin",
-						//AuthRequest: "",
+func InitConfig() {
+	initConfig()
+	return
+
+}
+func initConfig() {
+	conf := &GatewayConfig{
+		GatewayConfig: Gateway{
+			ListenAddr:   "localhost:8080",
+			WriteTimeout: 15,
+			ReadTimeout:  15,
+			IdleTimeout:  60,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin":  "*",
+				"Access-Control-Allow-Headers": "*",
+				"Access-Control-Allow-Methods": "*",
+			},
+			Routes: []Route{
+				{
+					Name:        "HealthCheck",
+					Path:        "/healthy",
+					Target:      "http://localhost:8080",
+					Rewrite:     "/",
+					HealthCheck: "",
+					Middlewares: []Middleware{
+						{
+							Path: "/admin",
+							//AuthRequest: "",
+						},
 					},
 				},
 			},
 		},
 	}
-
+	yamlData, err := yaml.Marshal(&conf)
+	if err != nil {
+		util.Fatal("Error %v", err.Error())
+	}
+	err = os.WriteFile("./data/config.yaml", yamlData, 0644)
+	if err != nil {
+		util.Fatal("Unable to write data into the file")
+	}
+	log.Println("Configuration file has been initialized successfully")
 }

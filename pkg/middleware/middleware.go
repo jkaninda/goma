@@ -1,11 +1,13 @@
 package middleware
 
 import (
-	"github.com/jkaninda/goma-gateway/utils"
+	"encoding/json"
+	"github.com/jkaninda/goma-gateway/util"
 	"log"
 	"net/http"
 	"net/url"
-	"strings"
+	"sync"
+	"time"
 )
 
 type Auth struct {
@@ -18,16 +20,18 @@ type Middleware interface {
 	Http(url string) error
 	Access(url string, code int) error
 }
-type ResponseError struct {
-	Code    int    `json:"code"`
-	Message string `json:"message,omitempty"`
+type RateLimiter struct {
+	tokens     int
+	maxTokens  int
+	refillRate time.Duration
+	lastRefill time.Time
+	mu         sync.Mutex
 }
+
 type ProxyResponseError struct {
-	Success bool          `json:"success"`
-	Code    int           `json:"code"`
-	Message string        `json:"message"`
-	Error   ResponseError `json:"error"`
-	Data    any           `json:"data,omitempty"`
+	Success bool   `json:"success"`
+	Code    int    `json:"code"`
+	Message string `json:"message"`
 }
 
 // AuthenticationMiddleware  Define our struct
@@ -44,24 +48,42 @@ type BlockListMiddleware struct {
 // AuthMiddleware function, which will be called for each request
 func (amw *AuthenticationMiddleware) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		utils.Info("%s: %s %s", r.RemoteAddr, r.RequestURI, r.UserAgent())
+		util.Info("%s: %s %s", r.RemoteAddr, r.RequestURI, r.UserAgent())
 		token := r.Header.Get("Authorization")
 		if token == "" {
 			log.Println("Missing Authorization header")
-			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusForbidden)
+			err := json.NewEncoder(w).Encode(map[string]interface{}{
+				"success": false,
+				"code":    http.StatusForbidden,
+				"message": "Missing Authorization header",
+			})
+			if err != nil {
+				return
+			}
 			return
 		}
 		authURL, err := url.Parse(amw.AuthURL)
 		if err != nil {
-			utils.Info("Error parsing auth URL: %v", err)
+			util.Info("Error parsing auth URL: %v", err)
 			http.Error(w, "Error parsing auth URL", http.StatusInternalServerError)
 			return
 		}
 		// Create a new request for /authentication
 		authReq, err := http.NewRequest("GET", authURL.String(), nil)
 		if err != nil {
-			utils.Info("Error creating auth request: %v", err)
-			http.Error(w, "Error creating auth request", http.StatusInternalServerError)
+			util.Info("Error creating auth request: %v", err)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			err := json.NewEncoder(w).Encode(map[string]interface{}{
+				"success": false,
+				"code":    http.StatusInternalServerError,
+				"message": "Internal Server Error",
+			})
+			if err != nil {
+				return
+			}
 			return
 		}
 		// Copy headers from the original request to the new request
@@ -78,12 +100,21 @@ func (amw *AuthenticationMiddleware) AuthMiddleware(next http.Handler) http.Hand
 		client := &http.Client{}
 		authResp, err := client.Do(authReq)
 		if err != nil || authResp.StatusCode != http.StatusOK {
-			utils.Error("Error Auth Response: error: %v", err)
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			util.Error("Error Auth Response: error: %v", err)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			err := json.NewEncoder(w).Encode(map[string]interface{}{
+				"success": false,
+				"code":    http.StatusUnauthorized,
+				"message": "Unauthorized",
+			})
+			if err != nil {
+				return
+			}
 			return
 		}
 		defer authResp.Body.Close()
-		utils.Info("Successfully authenticated")
+		util.Info("Successfully authenticated")
 		// Inject specific header tp the current request's header
 		// Add header to the next request from AuthRequest header, depending on your requirements
 		if amw.Headers != nil {
@@ -102,33 +133,4 @@ func (amw *AuthenticationMiddleware) AuthMiddleware(next http.Handler) http.Hand
 
 		next.ServeHTTP(w, r)
 	})
-}
-
-// BlocklistMiddleware checks if the request path is forbidden and returns 403 Forbidden
-func (blockList BlockListMiddleware) BlocklistMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		for _, block := range blockList.List {
-			if isPathBlocked(r.URL.Path, blockList.Prefix+block) {
-				http.Error(w, "Forbidden", http.StatusForbidden)
-				return
-			}
-		}
-		next.ServeHTTP(w, r)
-	})
-}
-
-// Helper function to determine if the request path is blocked
-func isPathBlocked(requestPath, blockedPath string) bool {
-	// Handle exact match
-	if requestPath == blockedPath {
-		return true
-	}
-	// Handle wildcard match (e.g., /admin/* should block /admin and any subpath)
-	if strings.HasSuffix(blockedPath, "/*") {
-		basePath := strings.TrimSuffix(blockedPath, "/*")
-		if strings.HasPrefix(requestPath, basePath) {
-			return true
-		}
-	}
-	return false
 }

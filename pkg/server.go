@@ -1,7 +1,7 @@
 package pkg
 
 import (
-	"github.com/jkaninda/goma-gateway/utils"
+	"github.com/jkaninda/goma-gateway/util"
 	"github.com/spf13/cobra"
 	"log"
 	"net/http"
@@ -12,15 +12,14 @@ import (
 func Start(cmd *cobra.Command) {
 	log.SetOutput(os.Stdout)
 	// Define the internal auth service handler for /authUser
-	utils.Info("Initializing routes...")
+	util.Info("Initializing routes...")
 	configFile, _ := cmd.Flags().GetString("config")
 	if configFile == "" {
 		configFile = ConfigFile
 	}
-	log.Println(configFile)
 	gateway, err := loadConf(configFile)
 	if err != nil {
-		utils.Fatal("Could not load configuration: %v", err)
+		util.Fatal("Could not load configuration: %v", err)
 	}
 	route := gateway.Initialize()
 	server := &http.Server{
@@ -30,10 +29,10 @@ func Start(cmd *cobra.Command) {
 		IdleTimeout:  time.Second * time.Duration(gateway.IdleTimeout),
 		Handler:      route, // Pass our instance of gorilla/mux in.
 	}
-	utils.Info("Initializing routes...done")
-	utils.Info("Started GomaGateway server on %v", gateway.ListenAddr)
+	util.Info("Initializing routes...done")
+	util.Info("Started GomaGateway server on %v", gateway.ListenAddr)
 	if err := server.ListenAndServe(); err != nil {
-		utils.Fatal("Error starting GomaGateway server: %v", err)
+		util.Fatal("Error starting GomaGateway server: %v", err)
 	}
 
 }
