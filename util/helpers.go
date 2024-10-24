@@ -2,6 +2,7 @@ package util
 
 import (
 	"os"
+	"strconv"
 )
 
 // FileExists checks if the file does exist
@@ -11,4 +12,26 @@ func FileExists(filename string) bool {
 		return false
 	}
 	return !info.IsDir()
+}
+func GetStringEnv(key, defaultValue string) string {
+	val := os.Getenv(key)
+	if val == "" {
+		return defaultValue
+	}
+	return val
+}
+
+func GetIntEnv(key string, defaultValue int) int {
+	val := os.Getenv(key)
+	if val == "" {
+		return defaultValue
+
+	}
+	i, err := strconv.Atoi(val)
+	if err != nil {
+		return defaultValue
+
+	}
+	return i
+
 }

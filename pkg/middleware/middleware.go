@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"encoding/json"
-	"github.com/jkaninda/goma-gateway/util"
+	"github.com/jkaninda/goma-gateway/internal/logger"
 	"io"
 	"net/http"
 	"net/url"
@@ -51,7 +51,7 @@ func (amw *AuthenticationMiddleware) AuthMiddleware(next http.Handler) http.Hand
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		for _, header := range amw.RequiredHeaders {
 			if r.Header.Get(header) == "" {
-				util.Error("Proxy error, missing %s header", header)
+				logger.Error("Proxy error, missing %s header", header)
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusForbidden)
 				err := json.NewEncoder(w).Encode(map[string]interface{}{
@@ -68,7 +68,7 @@ func (amw *AuthenticationMiddleware) AuthMiddleware(next http.Handler) http.Hand
 		//token := r.Header.Get("Authorization")
 		authURL, err := url.Parse(amw.AuthURL)
 		if err != nil {
-			util.Error("Error parsing auth URL: %v", err)
+			logger.Error("Error parsing auth URL: %v", err)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusInternalServerError)
 			err := json.NewEncoder(w).Encode(map[string]interface{}{
@@ -84,7 +84,7 @@ func (amw *AuthenticationMiddleware) AuthMiddleware(next http.Handler) http.Hand
 		// Create a new request for /authentication
 		authReq, err := http.NewRequest("GET", authURL.String(), nil)
 		if err != nil {
-			util.Error("Proxy error creating authentication request: %v", err)
+			logger.Error("Proxy error creating authentication request: %v", err)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusInternalServerError)
 			err := json.NewEncoder(w).Encode(map[string]interface{}{
@@ -111,8 +111,8 @@ func (amw *AuthenticationMiddleware) AuthMiddleware(next http.Handler) http.Hand
 		client := &http.Client{}
 		authResp, err := client.Do(authReq)
 		if err != nil || authResp.StatusCode != http.StatusOK {
-			util.Info("%s %s %s %s", r.Method, r.RemoteAddr, r.URL, r.UserAgent())
-			util.Error("Proxy authentication error")
+			logger.Info("%s %s %s %s", r.Method, r.RemoteAddr, r.URL, r.UserAgent())
+			logger.Error("Proxy authentication error")
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
 			err := json.NewEncoder(w).Encode(map[string]interface{}{

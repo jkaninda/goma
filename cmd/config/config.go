@@ -7,7 +7,7 @@
 package config
 
 import (
-	"github.com/jkaninda/goma-gateway/util"
+	"github.com/jkaninda/goma-gateway/internal/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +18,7 @@ var Cmd = &cobra.Command{
 		if len(args) == 0 {
 			return
 		} else {
-			util.Fatal(`"config" accepts no argument %q`, args)
+			logger.Fatal(`"config" accepts no argument %q`, args)
 
 		}
 

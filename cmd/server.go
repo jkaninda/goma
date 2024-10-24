@@ -7,8 +7,8 @@
 package cmd
 
 import (
+	"github.com/jkaninda/goma-gateway/internal/logger"
 	"github.com/jkaninda/goma-gateway/pkg"
-	"github.com/jkaninda/goma-gateway/util"
 	"github.com/spf13/cobra"
 )
 
@@ -19,7 +19,7 @@ var ServerCmd = &cobra.Command{
 		if len(args) == 0 {
 			pkg.Start(cmd)
 		} else {
-			util.Fatal(`"server" accepts no argument %q`, args)
+			logger.Fatal(`"server" accepts no argument %q`, args)
 
 		}
 

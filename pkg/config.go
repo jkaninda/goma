@@ -2,9 +2,10 @@ package pkg
 
 import (
 	"fmt"
+	"github.com/jkaninda/goma-gateway/internal/logger"
 	"github.com/jkaninda/goma-gateway/util"
+	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
-	"log"
 	"os"
 )
 
@@ -115,12 +116,16 @@ func loadConf(configFile string) (*Gateway, error) {
 func getConfigFile() string {
 	return util.GetStringEnv("GOMA_PROXY_CONFIG_FILE", ConfigFile)
 }
-func InitConfig() {
-	initConfig()
+func InitConfig(cmd *cobra.Command) {
+	initConfig(cmd)
 	return
 
 }
-func initConfig() {
+func initConfig(cmd *cobra.Command) {
+	configFile, _ := cmd.Flags().GetString("config")
+	if configFile == "" {
+		configFile = getConfigFile()
+	}
 	conf := &GatewayConfig{
 		GatewayConfig: Gateway{
 			ListenAddr:   "localhost:8080",
@@ -150,11 +155,11 @@ func initConfig() {
 	}
 	yamlData, err := yaml.Marshal(&conf)
 	if err != nil {
-		util.Fatal("Error %v", err.Error())
+		logger.Fatal("Error %v", err.Error())
 	}
-	err = os.WriteFile(ConfigFile, yamlData, 0644)
+	err = os.WriteFile(configFile, yamlData, 0644)
 	if err != nil {
-		util.Fatal("Unable to write data into the file")
+		logger.Fatal("Unable to write config file %s", err)
 	}
-	log.Println("Configuration file has been initialized successfully")
+	logger.Info("Configuration file has been initialized successfully")
 }

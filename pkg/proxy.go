@@ -3,7 +3,7 @@ package pkg
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jkaninda/goma-gateway/util"
+	"github.com/jkaninda/goma-gateway/internal/logger"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -16,7 +16,7 @@ func ProxyHandler(target, prefix, rewrite string) http.HandlerFunc {
 		// Parse the target backend URL
 		targetURL, err := url.Parse(target)
 		if err != nil {
-			util.Error("Error parsing backend URL: %s", err)
+			logger.Error("Error parsing backend URL: %s", err)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusInternalServerError)
 			err := json.NewEncoder(w).Encode(map[string]interface{}{
@@ -29,7 +29,7 @@ func ProxyHandler(target, prefix, rewrite string) http.HandlerFunc {
 			}
 			return
 		}
-		util.Info("%s %s %s %s", r.Method, r.RemoteAddr, r.URL, r.UserAgent())
+		logger.Info("%s %s %s %s", r.Method, r.RemoteAddr, r.URL, r.UserAgent())
 		// Create a reverse proxy
 		proxy := httputil.NewSingleHostReverseProxy(targetURL)
 		if prefix != "" && rewrite != "" {

@@ -30,7 +30,6 @@ func (gateway Gateway) Initialize() *mux.Router {
 		r.Use(blM.BlocklistMiddleware)
 		if route.Middlewares != nil {
 			for _, mid := range route.Middlewares {
-				//log.Printf("Mapping '%v' | %v ---> %v", route.Name, route.Path+mid.Path, route.Destination)
 				secureRouter := r.PathPrefix(route.Path + mid.Path).Subrouter()
 				secureRouter.Use(CORSHandler(gateway.Headers)) // Apply CORS middleware
 				amw := middleware.AuthenticationMiddleware{
