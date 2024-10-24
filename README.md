@@ -77,7 +77,7 @@ gateway:
       path: /cart
       rewrite: /
       destination: 'http://cart-service:8080'
-      healthCheck: /internal/health/ready
+      healthCheck: 
       cors: {}
       rateLimiter: 0
       blocklist: []
@@ -87,7 +87,7 @@ gateway:
       path: /notification
       rewrite: /
       destination: 'http://notification-notification:8080'
-      healthCheck: /internal/health/ready
+      healthCheck: 
       cors: {}
       rateLimiter: 0
       blocklist: []
