@@ -12,29 +12,29 @@ import (
 type Middleware struct {
 	//Path contains the protected route path
 	Path string `yaml:"path"`
-	// AuthRequest authentication using HTTP GET method
+	// Http authentication using HTTP GET method
 	//
-	//AuthRequest contains the authentication details
-	AuthRequest struct {
+	//Http contains the authentication details
+	Http struct {
 		// URL contains the authentication URL, it supports HTTP GET method only.
 		URL string `yaml:"url"`
 		// RequiredHeaders , contains required before sending request to the backend.
 		RequiredHeaders []string `yaml:"requiredHeaders,omitempty"`
 		// Headers Add header to the backend from Authentication request's header, depending on your requirements.
-		// Key is AuthRequest's response header Key, and value  is the backend Request's header Key.
+		// Key is Http's response header Key, and value  is the backend Request's header Key.
 		// In case you want to get headers from Authentication service and inject them to backend request's headers.
 		Headers map[string]string `yaml:"headers"`
 		// Params same as Headers, contains the request params.
 		//
 		// Gets authentication headers from authentication request and inject them as request params to the backend.
 		//
-		// Key is AuthRequest's response header Key, and value  is the backend Request's request param Key.
+		// Key is Http's response header Key, and value  is the backend Request's request param Key.
 		//
 		// In case you want to get headers from Authentication service and inject them to next request's params.
 		//
 		//e.g: Header X-Auth-UserId to query userId
 		Params map[string]string `yaml:"params"`
-	} `yaml:"authRequest"`
+	} `yaml:"http"`
 }
 
 // Route defines gateway route
@@ -47,8 +47,8 @@ type Route struct {
 	//
 	// E.g. /cart to / => It will rewrite /cart path to /
 	Rewrite string `yaml:"rewrite"`
-	// Target Defines route blacklist
-	Target string `yaml:"target"`
+	// Destination Defines backend URL
+	Destination string `yaml:"destination"`
 	// HealthCheck Defines the backend is health check
 	HealthCheck string `yaml:"healthCheck"`
 	// Blocklist Defines route blacklist
@@ -136,7 +136,7 @@ func initConfig() {
 				{
 					Name:        "HealthCheck",
 					Path:        "/healthy",
-					Target:      "http://localhost:8080",
+					Destination: "http://localhost:8080",
 					Rewrite:     "/",
 					HealthCheck: "",
 					Middlewares: []Middleware{

@@ -52,7 +52,7 @@ func (heathRoute HealthCheckRoute) HealthCheckHandler(w http.ResponseWriter, r *
 	var routes []HealthCheckRouteResponse
 	for _, route := range heathRoute.Routes {
 		if route.HealthCheck != "" {
-			err := HealthCheck(route.Target + route.HealthCheck)
+			err := HealthCheck(route.Destination + route.HealthCheck)
 			if err != nil {
 				util.Error("Route %s: %v", route.Name, err)
 				routes = append(routes, HealthCheckRouteResponse{Name: route.Name, Status: "unhealthy"})
