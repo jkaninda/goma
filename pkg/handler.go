@@ -3,7 +3,7 @@ package pkg
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
-	"github.com/jkaninda/goma-gateway/util"
+	"github.com/jkaninda/goma-gateway/internal/logger"
 	"log"
 	"net/http"
 )
@@ -54,16 +54,16 @@ func (heathRoute HealthCheckRoute) HealthCheckHandler(w http.ResponseWriter, r *
 		if route.HealthCheck != "" {
 			err := HealthCheck(route.Destination + route.HealthCheck)
 			if err != nil {
-				util.Error("Route %s: %v", route.Name, err)
+				logger.Error("Route %s: %v", route.Name, err)
 				routes = append(routes, HealthCheckRouteResponse{Name: route.Name, Status: "unhealthy"})
 				continue
 			} else {
-				util.Info("Route %s is healthy", route.Name)
+				logger.Info("Route %s is healthy", route.Name)
 				routes = append(routes, HealthCheckRouteResponse{Name: route.Name, Status: "healthy"})
 				continue
 			}
 		} else {
-			util.Error("Route %s's is healthCheck is undefined", route.Name)
+			logger.Error("Route %s's healthCheck is undefined", route.Name)
 			routes = append(routes, HealthCheckRouteResponse{Name: route.Name, Status: "undefined"})
 			continue
 

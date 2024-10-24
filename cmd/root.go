@@ -8,15 +8,15 @@ package cmd
 
 import (
 	"github.com/jkaninda/goma-gateway/cmd/config"
+	"github.com/jkaninda/goma-gateway/internal/logger"
 	"github.com/jkaninda/goma-gateway/util"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 // rootCmd represents
 var rootCmd = &cobra.Command{
 	Use:     "goma",
-	Short:   "Start goma instance",
+	Short:   "Goma is a lightweight API Gateway, Reverse Proxy",
 	Long:    `.`,
 	Example: "",
 	Version: util.FullVersion(),
@@ -27,7 +27,7 @@ var rootCmd = &cobra.Command{
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
-		os.Exit(1)
+		logger.Fatal("Error executing root command %v", err)
 	}
 }
 func init() {
