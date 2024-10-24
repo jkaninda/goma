@@ -1,10 +1,10 @@
 /.history
-config
+data
 compose.yaml
 .env
 test.md
 .DS_Store
-pg-bkup
+goma-gateway
 /.idea
 bin
 Makefile

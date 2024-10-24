@@ -7,7 +7,8 @@
 package cmd
 
 import (
-	"github.com/jkaninda/goma-gateway/utils"
+	"github.com/jkaninda/goma-gateway/cmd/config"
+	"github.com/jkaninda/goma-gateway/util"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -18,7 +19,7 @@ var rootCmd = &cobra.Command{
 	Short:   "Start goma instance",
 	Long:    `.`,
 	Example: "",
-	Version: utils.FullVersion(),
+	Version: util.FullVersion(),
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -32,5 +33,6 @@ func Execute() {
 func init() {
 	rootCmd.AddCommand(ServerCmd)
 	rootCmd.AddCommand(StopCmd)
+	rootCmd.AddCommand(config.Cmd)
 
 }

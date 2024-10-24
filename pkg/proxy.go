@@ -1,8 +1,9 @@
 package pkg
 
 import (
+	"encoding/json"
 	"fmt"
-	"log"
+	"github.com/jkaninda/goma-gateway/util"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -15,9 +16,20 @@ func ProxyHandler(target, prefix, rewrite string) http.HandlerFunc {
 		// Parse the target backend URL
 		targetURL, err := url.Parse(target)
 		if err != nil {
-			http.Error(w, "Error parsing backend URL", http.StatusInternalServerError)
+			util.Error("Error parsing backend URL: %s", err)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			err := json.NewEncoder(w).Encode(map[string]interface{}{
+				"success": false,
+				"code":    http.StatusInternalServerError,
+				"message": "Internal Server Error",
+			})
+			if err != nil {
+				return
+			}
 			return
 		}
+		util.Info("%s %s %s %s", r.Method, r.RemoteAddr, r.URL, r.UserAgent())
 		// Create a reverse proxy
 		proxy := httputil.NewSingleHostReverseProxy(targetURL)
 		if prefix != "" && rewrite != "" {
@@ -27,11 +39,9 @@ func ProxyHandler(target, prefix, rewrite string) http.HandlerFunc {
 			}
 		}
 		proxy.ModifyResponse = func(response *http.Response) error {
-			dumpResponse, err := httputil.DumpResponse(response, false)
-			if err != nil {
-				return err
+			if response.StatusCode < 200 || response.StatusCode >= 300 {
+				//TODO
 			}
-			log.Println("Response: \r\n", string(dumpResponse))
 			return nil
 		}
 		// Custom error handler for proxy errors

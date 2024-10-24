@@ -1,3 +1,3 @@
 package pkg
 
-const ConfigFile = "/home/goma/goma.yml"
+const ConfigFile = "/config/goma.yml"

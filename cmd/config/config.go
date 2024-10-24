@@ -1,25 +1,24 @@
-// Package cmd /
+// Package config Package cmd /
 /*****
 @author    Jonas Kaninda
 @license   MIT License <https://opensource.org/licenses/MIT>
 @Copyright © 2024 Jonas Kaninda
 **/
-package cmd
+package config
 
 import (
-	"github.com/jkaninda/goma-gateway/pkg"
 	"github.com/jkaninda/goma-gateway/util"
 	"github.com/spf13/cobra"
 )
 
-var ServerCmd = &cobra.Command{
-	Use:   "server",
-	Short: "Start server",
+var Cmd = &cobra.Command{
+	Use:   "config",
+	Short: "Goma configuration",
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
-			pkg.Start(cmd)
+			return
 		} else {
-			util.Fatal(`"server" accepts no argument %q`, args)
+			util.Fatal(`"config" accepts no argument %q`, args)
 
 		}
 
@@ -27,5 +26,5 @@ var ServerCmd = &cobra.Command{
 }
 
 func init() {
-	ServerCmd.Flags().StringP("config", "", "", "Goma config file")
+	Cmd.AddCommand(InitConfigCmd)
 }

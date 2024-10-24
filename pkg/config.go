@@ -2,18 +2,38 @@ package pkg
 
 import (
 	"fmt"
-	"github.com/jkaninda/goma-gateway/utils"
-	"github.com/spf13/cobra"
+	"github.com/jkaninda/goma-gateway/util"
 	"gopkg.in/yaml.v3"
+	"log"
 	"os"
 )
 
+// Middleware defined the route middleware
 type Middleware struct {
-	Path        string `yaml:"path"`
+	//Path contains the protected route path
+	Path string `yaml:"path"`
+	// AuthRequest authentication using HTTP GET method
+	//
+	//AuthRequest contains the authentication details
 	AuthRequest struct {
-		URL     string            `yaml:"url"`
+		// URL contains the authentication URL, it supports HTTP GET method only.
+		URL string `yaml:"url"`
+		// RequiredHeaders , contains required before sending request to the backend.
+		RequiredHeaders []string `yaml:"requiredHeaders,omitempty"`
+		// Headers Add header to the backend from Authentication request's header, depending on your requirements.
+		// Key is AuthRequest's response header Key, and value  is the backend Request's header Key.
+		// In case you want to get headers from Authentication service and inject them to backend request's headers.
 		Headers map[string]string `yaml:"headers"`
-		Params  map[string]string `yaml:"params"`
+		// Params same as Headers, contains the request params.
+		//
+		// Gets authentication headers from authentication request and inject them as request params to the backend.
+		//
+		// Key is AuthRequest's response header Key, and value  is the backend Request's request param Key.
+		//
+		// In case you want to get headers from Authentication service and inject them to next request's params.
+		//
+		//e.g: Header X-Auth-UserId to query userId
+		Params map[string]string `yaml:"params"`
 	} `yaml:"authRequest"`
 }
 
@@ -29,18 +49,40 @@ type Route struct {
 	Rewrite string `yaml:"rewrite"`
 	// Target Defines route blacklist
 	Target string `yaml:"target"`
+	// HealthCheck Defines the backend is health check
+	HealthCheck string `yaml:"healthCheck"`
 	// Blocklist Defines route blacklist
 	Blocklist []string `yaml:"blocklist"`
 	// Middlewares Defines route middleware
 	Middlewares []Middleware `yaml:"middlewares"`
 }
+
+// Gateway contains Goma Proxy Gateway's configs
 type Gateway struct {
-	ListenAddr   string            `yaml:"listenAddr"`
-	WriteTimeout int               `yaml:"writeTimeout"`
-	ReadTimeout  int               `yaml:"readTimeout"`
-	IdleTimeout  int               `yaml:"idleTimeout"`
-	Headers      map[string]string `yaml:"headers"`
-	Routes       []Route           `yaml:"routes"`
+	// ListenAddr Defines the server listenAddr
+	//
+	//e.g: localhost:8080
+	ListenAddr string `yaml:"listenAddr"`
+	// WriteTimeout defines proxy write timeout
+	WriteTimeout int `yaml:"writeTimeout"`
+	// ReadTimeout defines proxy read timeout
+	ReadTimeout int `yaml:"readTimeout"`
+	// IdleTimeout defines proxy idle timeout
+	IdleTimeout int `yaml:"idleTimeout"`
+	// RateLimiter Defines routes rateLimiter
+	RateLimiter int `yaml:"rateLimiter"`
+	// Headers contains the proxy headers
+	//
+	//e.g:
+	//
+	//Access-Control-Allow-Origin: '*'
+	//
+	//    Access-Control-Allow-Methods: 'GET, POST, PUT, DELETE, OPTIONS'
+	//
+	//    Access-Control-Allow-Headers: 'Content-Type, Authorization'
+	Headers map[string]string `yaml:"headers"`
+	// Routes defines the proxy routes
+	Routes []Route `yaml:"routes"`
 }
 type GatewayConfig struct {
 	GatewayConfig Gateway `yaml:"gateway"`
@@ -51,16 +93,11 @@ type ErrorResponse struct {
 	Success bool   `json:"success"`
 	Code    int    `json:"code"`
 	Message string `json:"message"`
-	Error   struct {
-		Code    string `json:"code"`
-		Message string `json:"message"`
-	} `json:"error"`
-	Data interface{} `json:"data"`
 }
 
 // config reads config file and returns Gateway
 func loadConf(configFile string) (*Gateway, error) {
-	if utils.FileExists(configFile) {
+	if util.FileExists(configFile) {
 		buf, err := os.ReadFile(configFile)
 		if err != nil {
 			return nil, err
@@ -75,30 +112,49 @@ func loadConf(configFile string) (*Gateway, error) {
 	}
 	return nil, fmt.Errorf("configuration file not found: %v", configFile)
 }
-func InitConfig(cmd *cobra.Command) {
-	_ = &Gateway{
-		ListenAddr:   "localhost:8080",
-		WriteTimeout: 60,
-		ReadTimeout:  60,
-		IdleTimeout:  60,
-		Headers: map[string]string{
-			"Access-Control-Allow-Origin":  "*",
-			"Access-Control-Allow-Headers": "*",
-			"Access-Control-Allow-Methods": "*",
-		},
-		Routes: []Route{
-			{
-				Name:   "Health",
-				Path:   "/health",
-				Target: "/health",
-				Middlewares: []Middleware{
-					{
-						Path: "/admin",
-						//AuthRequest: "",
+func getConfigFile() string {
+	return util.GetStringEnv("GOMA_PROXY_CONFIG_FILE", ConfigFile)
+}
+func InitConfig() {
+	initConfig()
+	return
+
+}
+func initConfig() {
+	conf := &GatewayConfig{
+		GatewayConfig: Gateway{
+			ListenAddr:   "localhost:8080",
+			WriteTimeout: 15,
+			ReadTimeout:  15,
+			IdleTimeout:  60,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin":  "*",
+				"Access-Control-Allow-Headers": "*",
+				"Access-Control-Allow-Methods": "*",
+			},
+			Routes: []Route{
+				{
+					Name:        "HealthCheck",
+					Path:        "/healthy",
+					Target:      "http://localhost:8080",
+					Rewrite:     "/",
+					HealthCheck: "",
+					Middlewares: []Middleware{
+						{
+							Path: "/admin",
+						},
 					},
 				},
 			},
 		},
 	}
-
+	yamlData, err := yaml.Marshal(&conf)
+	if err != nil {
+		util.Fatal("Error %v", err.Error())
+	}
+	err = os.WriteFile(ConfigFile, yamlData, 0644)
+	if err != nil {
+		util.Fatal("Unable to write data into the file")
+	}
+	log.Println("Configuration file has been initialized successfully")
 }
