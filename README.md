@@ -55,6 +55,12 @@ gateway:
             # In case you want to get headers from Authentication service and inject them to next request's params
             params:
               auth_userCountryId: countryId
+        - path: /items
+          #Enables basic authorization
+          # Protect path with basic authentication
+          basic:
+            username: goma
+            password: goma
         - path: /business
           http:
             url: http://security-service:8080/security/authUser
