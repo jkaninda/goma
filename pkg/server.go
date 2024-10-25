@@ -17,7 +17,7 @@ func (gatewayServer GatewayServer) Start() {
 		IdleTimeout:  time.Second * time.Duration(gatewayServer.gateway.IdleTimeout),
 		Handler:      route, // Pass our instance of gorilla/mux in.
 	}
-	if gatewayServer.gateway.DisplayRouteOnStart {
+	if !gatewayServer.gateway.DisableDisplayRouteOnStart {
 		printRoute(gatewayServer.gateway.Routes)
 	}
 	logger.Info("Started Goma Gateway server on %v", gatewayServer.gateway.ListenAddr)

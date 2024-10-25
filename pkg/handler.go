@@ -56,12 +56,11 @@ func (heathRoute HealthCheckRoute) HealthCheckHandler(w http.ResponseWriter, r *
 			err := HealthCheck(route.Destination + route.HealthCheck)
 			if err != nil {
 				logger.Error("Route %s: %v", route.Name, err)
-				if heathRoute.EnableRouteHealthCheckError {
-					routes = append(routes, HealthCheckRouteResponse{Name: route.Name, Status: "unhealthy", Error: err.Error()})
+				if heathRoute.DisableRouteHealthCheckError {
+					routes = append(routes, HealthCheckRouteResponse{Name: route.Name, Status: "unhealthy", Error: "Route healthcheck errors disabled"})
 					continue
-
 				}
-				routes = append(routes, HealthCheckRouteResponse{Name: route.Name, Status: "unhealthy", Error: "Route healthcheck errors disabled"})
+				routes = append(routes, HealthCheckRouteResponse{Name: route.Name, Status: "unhealthy", Error: err.Error()})
 				continue
 			} else {
 				logger.Info("Route %s is healthy", route.Name)

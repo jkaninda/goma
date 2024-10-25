@@ -15,8 +15,10 @@ gateway:
   accessLog:    "/dev/Stdout"
   errorLog:     "/dev/stderr"
   ## Returns backend route healthcheck errors
-  enableRouteHealthCheckError: false
-  displayRouteOnStart: true
+  disableRouteHealthCheckError: false
+  # Disable display routes on start
+  disableDisplayRouteOnStart: false
+  # Proxy Global HTTP Cors
   cors:
     Access-Control-Allow-Origin: '*'
     Access-Control-Allow-Methods: 'GET, POST, PUT, DELETE, OPTIONS'
@@ -36,6 +38,7 @@ gateway:
       disableHeaderXForward: false
       # Internal healthCheck
       healthCheck: /internal/health/ready
+      # Proxy route HTTP Cors
       cors:
         Access-Control-Allow-Origin: '*'
         Access-Control-Allow-Methods: 'GET, POST, PUT, DELETE, OPTIONS'

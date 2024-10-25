@@ -12,8 +12,8 @@ func (gatewayServer GatewayServer) Initialize() *mux.Router {
 	gateway := gatewayServer.gateway
 	r := mux.NewRouter()
 	heath := HealthCheckRoute{
-		EnableRouteHealthCheckError: gateway.EnableRouteHealthCheckError,
-		Routes:                      gateway.Routes,
+		DisableRouteHealthCheckError: gateway.DisableRouteHealthCheckError,
+		Routes:                       gateway.Routes,
 	}
 	// Define the health check route
 	r.HandleFunc("/health", heath.HealthCheckHandler).Methods("GET")

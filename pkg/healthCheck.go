@@ -8,8 +8,8 @@ import (
 )
 
 type HealthCheckRoute struct {
-	EnableRouteHealthCheckError bool
-	Routes                      []Route
+	DisableRouteHealthCheckError bool
+	Routes                       []Route
 }
 
 // HealthCheckResponse represents the health check response structure
