@@ -49,6 +49,7 @@ func ProxyErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
 
 // HealthCheckHandler handles health check of routes
 func (heathRoute HealthCheckRoute) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	logger.Info("%s %s %s %s", r.Method, r.RemoteAddr, r.URL, r.UserAgent())
 	var routes []HealthCheckRouteResponse
 	for _, route := range heathRoute.Routes {
 		if route.HealthCheck != "" {

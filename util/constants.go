@@ -1,13 +1,12 @@
 package util
 
 import (
-	"fmt"
 	"os"
 )
 
-const VERSION = "0.0.1"
+var Version string
 
-func BUILD(def string) string {
+func VERSION(def string) string {
 	build := os.Getenv("VERSION")
 	if build == "" {
 		return def
@@ -15,9 +14,9 @@ func BUILD(def string) string {
 	return build
 }
 func FullVersion() string {
-	ver := VERSION
-	if b := BUILD(""); b != "" {
-		ver = fmt.Sprintf("%s.%s", ver, b)
+	ver := Version
+	if b := VERSION(""); b != "" {
+		return b
 	}
 	return ver
 }

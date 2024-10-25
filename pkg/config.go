@@ -95,6 +95,7 @@ type Gateway struct {
 	//EnableRouteHealthCheck      bool   `yaml:"enableRouteHealthCheck" env:"GOMA_ENABLE_ROUTE_HEALTH_CHECK, overwrite"`
 	//RouteHealthCheckTime        int    `yaml:"routeHealthCheckTime" env:"GOMA_ROUTE_HEALTH_CHECK_TIME, overwrite"`
 	EnableRouteHealthCheckError bool `yaml:"enableRouteHealthCheckError" env:"GOMA_ENABLE_ROUTE_HEALTH_CHECK_ERROR, overwrite"`
+	DisplayRouteOnStart         bool `yaml:"displayRouteOnStart"`
 	// Cors contains the proxy headers
 	//
 	//e.g:
@@ -170,7 +171,7 @@ func GetConfigPaths() string {
 	return util.GetStringEnv("GOMAY_CONFIG_FILE", ConfigFile)
 }
 func InitConfig(cmd *cobra.Command) {
-	configFile, _ := cmd.Flags().GetString("config")
+	configFile, _ := cmd.Flags().GetString("output")
 	if configFile == "" {
 		configFile = GetConfigPaths()
 	}
@@ -191,10 +192,11 @@ func initConfig(configFile string) {
 			AccessLog:                   "/dev/Stdout",
 			ErrorLog:                    "/dev/stderr",
 			EnableRouteHealthCheckError: false,
+			DisplayRouteOnStart:         true,
 			Cors: map[string]string{
 				"Access-Control-Allow-Origin":  "*",
 				"Access-Control-Allow-Cors":    "*",
-				"Access-Control-Allow-Methods": "*",
+				"Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
 			},
 			Routes: []Route{
 				{
@@ -203,7 +205,11 @@ func initConfig(configFile string) {
 					Destination: "http://localhost:8080",
 					Rewrite:     "/health",
 					HealthCheck: "",
-					Cors:        map[string]string{},
+					Cors: map[string]string{
+						"Access-Control-Allow-Origin":  "*",
+						"Access-Control-Allow-Cors":    "*",
+						"Access-Control-Allow-Methods": "GET, OPTIONS",
+					},
 					Middlewares: []Middleware{
 						{
 							Path:  "/admin",

@@ -14,7 +14,7 @@ type Logger struct {
 
 // Info returns info log
 func Info(msg string, args ...interface{}) {
-	log.SetOutput(getStd(util.GetStringEnv("GOMA_PROXY_ACCESS_LOG", "/dev/stdout")))
+	log.SetOutput(getStd(util.GetStringEnv("GOMA_ACCESS_LOG", "/dev/stdout")))
 	formattedMessage := fmt.Sprintf(msg, args...)
 	if len(args) == 0 {
 		log.Printf("INFO: %s\n", msg)
@@ -25,7 +25,7 @@ func Info(msg string, args ...interface{}) {
 
 // Warn returns warning log
 func Warn(msg string, args ...interface{}) {
-	log.SetOutput(getStd(util.GetStringEnv("GOMA_PROXY_ACCESS_LOG", "/dev/stdout")))
+	log.SetOutput(getStd(util.GetStringEnv("GOMA_ACCESS_LOG", "/dev/stdout")))
 	formattedMessage := fmt.Sprintf(msg, args...)
 	if len(args) == 0 {
 		log.Printf("WARN: %s\n", msg)
@@ -36,7 +36,7 @@ func Warn(msg string, args ...interface{}) {
 
 // Error error message
 func Error(msg string, args ...interface{}) {
-	log.SetOutput(getStd(util.GetStringEnv("GOMA_PROXY_ERROR_LOG", "/dev/stderr")))
+	log.SetOutput(getStd(util.GetStringEnv("GOMA_ERROR_LOG", "/dev/stderr")))
 	formattedMessage := fmt.Sprintf(msg, args...)
 	if len(args) == 0 {
 		log.Printf("ERROR: %s\n", msg)
@@ -46,7 +46,7 @@ func Error(msg string, args ...interface{}) {
 	}
 }
 func Fatal(msg string, args ...interface{}) {
-	log.SetOutput(getStd(util.GetStringEnv("GOMA_PROXY_ERROR_LOG", "/dev/stderr")))
+	log.SetOutput(getStd(util.GetStringEnv("GOMA_ERROR_LOG", "/dev/stderr")))
 	formattedMessage := fmt.Sprintf(msg, args...)
 	if len(args) == 0 {
 		log.Printf("ERROR: %s\n", msg)
@@ -58,7 +58,7 @@ func Fatal(msg string, args ...interface{}) {
 }
 
 func Debug(msg string, args ...interface{}) {
-	log.SetOutput(getStd(util.GetStringEnv("GOMA_PROXY_ACCESS_LOG", "/dev/stdout")))
+	log.SetOutput(getStd(util.GetStringEnv("GOMA_ACCESS_LOG", "/dev/stdout")))
 	formattedMessage := fmt.Sprintf(msg, args...)
 	if len(args) == 0 {
 		log.Printf("INFO: %s\n", msg)
@@ -78,8 +78,4 @@ func getStd(out string) *os.File {
 		return os.Stdout
 
 	}
-}
-
-func WithError(err error) {
-
 }

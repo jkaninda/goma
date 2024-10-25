@@ -21,7 +21,6 @@ type Middleware interface {
 	Basic(username, password string) error
 	Jwt(token string) error
 	Http(url string) error
-	Access(url string, code int) error
 }
 type RateLimiter struct {
 	tokens     int
@@ -31,6 +30,7 @@ type RateLimiter struct {
 	mu         sync.Mutex
 }
 
+// ProxyResponseError represents the structure of the JSON error response
 type ProxyResponseError struct {
 	Success bool   `json:"success"`
 	Code    int    `json:"code"`
@@ -65,10 +65,10 @@ func (amw *AuthenticationMiddleware) AuthMiddleware(next http.Handler) http.Hand
 				logger.Error("Proxy error, missing %s header", header)
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusForbidden)
-				err := json.NewEncoder(w).Encode(map[string]interface{}{
-					"success": false,
-					"code":    http.StatusForbidden,
-					"message": "Missing Authorization header",
+				err := json.NewEncoder(w).Encode(ProxyResponseError{
+					Message: "Missing Authorization header",
+					Code:    http.StatusForbidden,
+					Success: false,
 				})
 				if err != nil {
 					return
@@ -82,10 +82,10 @@ func (amw *AuthenticationMiddleware) AuthMiddleware(next http.Handler) http.Hand
 			logger.Error("Error parsing auth URL: %v", err)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusInternalServerError)
-			err := json.NewEncoder(w).Encode(map[string]interface{}{
-				"success": false,
-				"code":    http.StatusInternalServerError,
-				"message": "Internal Server Error",
+			err = json.NewEncoder(w).Encode(ProxyResponseError{
+				Message: "Internal Server Error",
+				Code:    http.StatusInternalServerError,
+				Success: false,
 			})
 			if err != nil {
 				return
@@ -98,10 +98,10 @@ func (amw *AuthenticationMiddleware) AuthMiddleware(next http.Handler) http.Hand
 			logger.Error("Proxy error creating authentication request: %v", err)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusInternalServerError)
-			err := json.NewEncoder(w).Encode(map[string]interface{}{
-				"success": false,
-				"code":    http.StatusInternalServerError,
-				"message": "Internal Server Error",
+			err = json.NewEncoder(w).Encode(ProxyResponseError{
+				Message: "Internal Server Error",
+				Code:    http.StatusInternalServerError,
+				Success: false,
 			})
 			if err != nil {
 				return
@@ -126,10 +126,10 @@ func (amw *AuthenticationMiddleware) AuthMiddleware(next http.Handler) http.Hand
 			logger.Error("Proxy authentication error")
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
-			err := json.NewEncoder(w).Encode(map[string]interface{}{
-				"success": false,
-				"code":    http.StatusUnauthorized,
-				"message": "Unauthorized",
+			err = json.NewEncoder(w).Encode(ProxyResponseError{
+				Message: "Unauthorized",
+				Code:    http.StatusUnauthorized,
+				Success: false,
 			})
 			if err != nil {
 				return
