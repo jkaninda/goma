@@ -1,7 +1,7 @@
 package pkg
 
 import (
-	"github.com/jkaninda/goma-gateway/internal/logger"
+	"github.com/jkaninda/goma/internal/logger"
 	"net/http"
 	"time"
 )

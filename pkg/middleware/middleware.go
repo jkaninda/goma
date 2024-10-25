@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"github.com/gorilla/mux"
-	"github.com/jkaninda/goma-gateway/internal/logger"
+	"github.com/jkaninda/goma/internal/logger"
 	"io"
 	"net/http"
 	"net/url"

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/jedib0t/go-pretty/v6/table"
-	"github.com/jkaninda/goma-gateway/pkg/middleware"
+	"github.com/jkaninda/goma/pkg/middleware"
 	"time"
 )
 

@@ -2,7 +2,7 @@ package logger
 
 import (
 	"fmt"
-	"github.com/jkaninda/goma-gateway/util"
+	"github.com/jkaninda/goma/util"
 	"log"
 	"os"
 )

@@ -3,7 +3,7 @@ package pkg
 import (
 	"fmt"
 	"github.com/common-nighthawk/go-figure"
-	"github.com/jkaninda/goma-gateway/util"
+	"github.com/jkaninda/goma/util"
 	"log"
 )
 

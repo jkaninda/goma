@@ -7,8 +7,8 @@
 package cmd
 
 import (
-	"github.com/jkaninda/goma-gateway/internal/logger"
-	"github.com/jkaninda/goma-gateway/pkg"
+	"github.com/jkaninda/goma/internal/logger"
+	"github.com/jkaninda/goma/pkg"
 	"github.com/spf13/cobra"
 )
 

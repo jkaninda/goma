@@ -1,6 +1,6 @@
 package main
 
-import "github.com/jkaninda/goma-gateway/cmd"
+import "github.com/jkaninda/goma/cmd"
 
 func main() {
 
