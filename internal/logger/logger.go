@@ -79,3 +79,7 @@ func getStd(out string) *os.File {
 
 	}
 }
+
+func WithError(err error) {
+
+}

@@ -8,10 +8,12 @@ import (
 	"time"
 )
 
-func (gateway Gateway) Initialize() *mux.Router {
+func (gatewayServer GatewayServer) Initialize() *mux.Router {
+	gateway := gatewayServer.gateway
 	r := mux.NewRouter()
 	heath := HealthCheckRoute{
-		Routes: gateway.Routes,
+		EnableRouteHealthCheckError: gateway.EnableRouteHealthCheckError,
+		Routes:                      gateway.Routes,
 	}
 	// Define the health check route
 	r.HandleFunc("/health", heath.HealthCheckHandler).Methods("GET")
@@ -63,7 +65,6 @@ func (gateway Gateway) Initialize() *mux.Router {
 		router.PathPrefix("/").Handler(ProxyHandler(route.Destination, route.Path, route.Rewrite))
 
 	}
-	printRoute(gateway.Routes)
 	return r
 
 }
