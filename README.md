@@ -13,8 +13,8 @@ Goma is a lightweight API Gateway and Reverse Proxy.
 
 [![Build](https://github.com/jkaninda/goma/actions/workflows/release.yml/badge.svg)](https://github.com/jkaninda/goma/actions/workflows/release.yml)
 [![Go Report](https://goreportcard.com/badge/github.com/jkaninda/mysql-bkup)](https://goreportcard.com/report/github.com/jkaninda/goma)
+[![Go Reference](https://pkg.go.dev/badge/github.com/jkaninda/goma.svg)](https://pkg.go.dev/github.com/jkaninda/goma)
 ![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/jkaninda/goma?style=flat-square)
-![Docker Pulls](https://img.shields.io/docker/pulls/jkaninda/goma?style=flat-square)
 
 ## Links:
 
@@ -23,13 +23,13 @@ Goma is a lightweight API Gateway and Reverse Proxy.
 
 ### Feature
 
-- [x] Reverse proxy 
-- [x] API Gateway 
+- [x] Reverse proxy
+- [x] API Gateway
 - [x] Cors
 - [ ] Add Load balancing feature
 - [ ] Support TLS
 - [x] Authentication middleware
-  - [x] JWT `HTTP Bearer Token` 
+  - [x] JWT `HTTP Bearer Token`
   - [x] Basic-Auth
   - [ ] OAuth2
 - [ ] Implement rate limiting
@@ -45,7 +45,7 @@ docker run --rm  --name goma \
  -v "${PWD}/config:/config" \
  jkaninda/goma config init --output /config/goma.yml
 ```
-### 2. Run 
+### 2. Run
 
 ```shell
 docker run --rm --name goma \
@@ -58,7 +58,6 @@ Create a config file in this format
 
 Example of configuration file
 ```yaml
-##### Goma Gateway configurations
 # Goma - simple lightweight API Gateway and Reverse Proxy.
 # Goma Gateway configurations
 gateway:
@@ -76,8 +75,10 @@ gateway:
   accessLog:    "/dev/Stdout"
   errorLog:     "/dev/stderr"
   ## Returns backend route healthcheck errors
-  enableRouteHealthCheckError: false
-  displayRouteOnStart: true
+  disableRouteHealthCheckError: false
+  # Disable display routes on start
+  disableDisplayRouteOnStart: false
+  # Proxy Global HTTP Cors
   cors:
     Access-Control-Allow-Origin: '*'
     Access-Control-Allow-Methods: 'GET, POST, PUT, DELETE, OPTIONS'
@@ -97,6 +98,7 @@ gateway:
       disableHeaderXForward: false
       # Internal healthCheck
       healthCheck: /internal/health/ready
+      # Proxy route HTTP Cors
       cors:
         Access-Control-Allow-Origin: '*'
         Access-Control-Allow-Methods: 'GET, POST, PUT, DELETE, OPTIONS'
