@@ -14,6 +14,7 @@ type ProxyRoute struct {
 	path            string
 	rewrite         string
 	destination     string
+	cors            Cors
 	disableXForward bool
 }
 
@@ -21,6 +22,24 @@ type ProxyRoute struct {
 func (proxyRoute ProxyRoute) ProxyHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger.Info("%s %s %s %s", r.Method, r.RemoteAddr, r.URL, r.UserAgent())
+		// Set CORS headers from the cors config
+		//Update Cors Headers
+		for k, v := range proxyRoute.cors.Headers {
+			w.Header().Set(k, v)
+		}
+
+		//Update Origin Cors Headers
+		for _, origin := range proxyRoute.cors.Origins {
+			if origin == r.Header.Get("Origin") {
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+
+			}
+		}
+		// Handle preflight requests (OPTIONS)
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
 		// Parse the target backend URL
 		targetURL, err := url.Parse(proxyRoute.destination)
 		if err != nil {
@@ -64,4 +83,15 @@ func (proxyRoute ProxyRoute) ProxyHandler() http.HandlerFunc {
 		proxy.ErrorHandler = ProxyErrorHandler
 		proxy.ServeHTTP(w, r)
 	}
+}
+
+func isAllowed(cors []string, r *http.Request) bool {
+	for _, origin := range cors {
+		if origin == r.Header.Get("Origin") {
+			return true
+		}
+		continue
+	}
+	return false
+
 }
