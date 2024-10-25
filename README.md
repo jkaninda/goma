@@ -11,6 +11,16 @@
 ```
 Goma is a lightweight API Gateway and Reverse Proxy.
 
+[![Build](https://github.com/jkaninda/goma-gateway/actions/workflows/release.yml/badge.svg)](https://github.com/jkaninda/goma-gateway/actions/workflows/release.yml)
+[![Go Report](https://goreportcard.com/badge/github.com/jkaninda/mysql-bkup)](https://goreportcard.com/report/github.com/jkaninda/goma-gateway)
+![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/jkaninda/goma-gateway?style=flat-square)
+![Docker Pulls](https://img.shields.io/docker/pulls/jkaninda/goma-gateway?style=flat-square)
+
+## Links:
+
+- [Docker Hub](https://hub.docker.com/r/jkaninda/goma-gateway)
+- [Github](https://github.com/jkaninda/goma-gateway)
+
 ### Feature
 
 - [x] Reverse proxy 
