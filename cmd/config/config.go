@@ -7,7 +7,7 @@
 package config
 
 import (
-	"github.com/jkaninda/goma-gateway/internal/logger"
+	"github.com/jkaninda/goma/internal/logger"
 	"github.com/spf13/cobra"
 )
 

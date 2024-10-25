@@ -3,7 +3,7 @@ package pkg
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jkaninda/goma-gateway/internal/logger"
+	"github.com/jkaninda/goma/internal/logger"
 	"net/http"
 	"net/http/httputil"
 	"net/url"

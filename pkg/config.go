@@ -2,8 +2,8 @@ package pkg
 
 import (
 	"fmt"
-	"github.com/jkaninda/goma-gateway/internal/logger"
-	"github.com/jkaninda/goma-gateway/util"
+	"github.com/jkaninda/goma/internal/logger"
+	"github.com/jkaninda/goma/util"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 	"os"

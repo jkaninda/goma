@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"encoding/json"
-	"github.com/jkaninda/goma-gateway/internal/logger"
+	"github.com/jkaninda/goma/internal/logger"
 	"net/http"
 	"strings"
 	"time"

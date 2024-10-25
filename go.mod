@@ -1,4 +1,4 @@
-module github.com/jkaninda/goma-gateway
+module github.com/jkaninda/goma
 
 go 1.23.2
 

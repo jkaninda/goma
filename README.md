@@ -11,15 +11,15 @@
 ```
 Goma is a lightweight API Gateway and Reverse Proxy.
 
-[![Build](https://github.com/jkaninda/goma-gateway/actions/workflows/release.yml/badge.svg)](https://github.com/jkaninda/goma-gateway/actions/workflows/release.yml)
-[![Go Report](https://goreportcard.com/badge/github.com/jkaninda/mysql-bkup)](https://goreportcard.com/report/github.com/jkaninda/goma-gateway)
-![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/jkaninda/goma-gateway?style=flat-square)
-![Docker Pulls](https://img.shields.io/docker/pulls/jkaninda/goma-gateway?style=flat-square)
+[![Build](https://github.com/jkaninda/goma/actions/workflows/release.yml/badge.svg)](https://github.com/jkaninda/goma/actions/workflows/release.yml)
+[![Go Report](https://goreportcard.com/badge/github.com/jkaninda/mysql-bkup)](https://goreportcard.com/report/github.com/jkaninda/goma)
+![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/jkaninda/goma?style=flat-square)
+![Docker Pulls](https://img.shields.io/docker/pulls/jkaninda/goma?style=flat-square)
 
 ## Links:
 
-- [Docker Hub](https://hub.docker.com/r/jkaninda/goma-gateway)
-- [Github](https://github.com/jkaninda/goma-gateway)
+- [Docker Hub](https://hub.docker.com/r/jkaninda/goma)
+- [Github](https://github.com/jkaninda/goma)
 
 ### Feature
 
@@ -43,7 +43,7 @@ Goma is a lightweight API Gateway and Reverse Proxy.
 ```shell
 docker run --rm  --name goma \
  -v "${PWD}/config:/config" \
- jkaninda/goma-gateway config init --output /config/goma.yml
+ jkaninda/goma config init --output /config/goma.yml
 ```
 ### 2. Run 
 
@@ -51,7 +51,7 @@ docker run --rm  --name goma \
 docker run --rm --name goma \
  -v "${PWD}/config:/config" \
  -p 8080:80 \
- jkaninda/goma-gateway server --config /config/goma.yml
+ jkaninda/goma server --config /config/goma.yml
 ```
 Create a config file in this format
 ## Customize configuration file
