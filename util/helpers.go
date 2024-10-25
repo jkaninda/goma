@@ -57,3 +57,6 @@ func SetEnv(name, value string) {
 	}
 
 }
+func MergeSlices(slice1, slice2 []string) []string {
+	return append(slice1, slice2...)
+}

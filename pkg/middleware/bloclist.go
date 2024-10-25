@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/jkaninda/goma/internal/logger"
 	"net/http"
 	"strings"
@@ -12,14 +13,14 @@ import (
 func (blockList BlockListMiddleware) BlocklistMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		for _, block := range blockList.List {
-			if isPathBlocked(r.URL.Path, blockList.Prefix+block) {
+			if isPathBlocked(r.URL.Path, parseURLPath(blockList.Path+block)) {
 				logger.Error("Proxy access to %s is forbidden", r.URL.Path)
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusForbidden)
-				err := json.NewEncoder(w).Encode(map[string]interface{}{
-					"success": false,
-					"code":    http.StatusForbidden,
-					"message": "Forbidden",
+				err := json.NewEncoder(w).Encode(ProxyResponseError{
+					Success: false,
+					Code:    http.StatusForbidden,
+					Message: fmt.Sprintf("Access to %s is forbidden", r.URL.Path),
 				})
 				if err != nil {
 					return
@@ -79,4 +80,16 @@ func (rl *RateLimiter) Allow() bool {
 
 	// Reject request if no tokens are available
 	return false
+}
+
+// parseURLPath returns a URL path
+func parseURLPath(urlPath string) string {
+	// Replace any double slashes with a single slash
+	urlPath = strings.ReplaceAll(urlPath, "//", "/")
+
+	// Ensure the path starts with a single leading slash
+	if !strings.HasPrefix(urlPath, "/") {
+		urlPath = "/" + urlPath
+	}
+	return urlPath
 }

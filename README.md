@@ -89,7 +89,7 @@ Create a config file in this format
 
 Example of configuration file
 ```yaml
-# Goma - simple lightweight API Gateway and Reverse Proxy.
+## Goma - simple lightweight API Gateway and Reverse Proxy.
 # Goma Gateway configurations
 gateway:
   ########## Global settings
@@ -111,9 +111,17 @@ gateway:
   disableDisplayRouteOnStart: false
   # Proxy Global HTTP Cors
   cors:
-    Access-Control-Allow-Origin: '*'
-    Access-Control-Allow-Methods: 'GET, POST, PUT, DELETE, OPTIONS'
-    Access-Control-Allow-Headers: 'Content-Type, Authorization'
+    # Cors origins are global for all routes
+    origins:
+      - https://example.com
+      - https://dev.example.com
+      - http://localhost:80
+    # Allowed headers
+    headers:
+      Access-Control-Allow-Origin: "http://localhost:3000; https://examole.com"
+      Access-Control-Allow-Headers: 'Origin, Authorization, Accept, Content-Type, Access-Control-Allow-Headers, X-Client-Id, X-Session-Id'
+      Access-Control-Allow-Credentials: 'true'
+      Access-Control-Max-Age: 1728000
   ##### Define routes
   routes:
     # Example of a route | 1
@@ -131,9 +139,13 @@ gateway:
       healthCheck: /internal/health/ready
       # Proxy route HTTP Cors
       cors:
-        Access-Control-Allow-Origin: '*'
-        Access-Control-Allow-Methods: 'GET, POST, PUT, DELETE, OPTIONS'
-        Access-Control-Allow-Headers: 'Content-Type, Authorization'
+        headers:
+          #Access-Control-Allow-Origin: "*"
+          Access-Control-Allow-Origin: "http://localhost:3000; https://exmaple.com"
+          #Access-Control-Allow-Methods: 'GET'
+          Access-Control-Allow-Headers: 'Origin, Authorization, Accept, Content-Type, Access-Control-Allow-Headers, X-Client-Id, X-Session-Id'
+          Access-Control-Allow-Credentials: 'true'
+          Access-Control-Max-Age: 1728000
       #### Define route blocklist paths
       blocklist:
         - /swagger-ui/*

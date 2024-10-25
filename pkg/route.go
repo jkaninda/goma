@@ -17,23 +17,25 @@ func (gatewayServer GatewayServer) Initialize() *mux.Router {
 	}
 	// Define the health check route
 	r.HandleFunc("/health", heath.HealthCheckHandler).Methods("GET")
+	// Apply global Cors middlewares
+	r.Use(CORSHandler(gateway.Cors)) // Apply CORS middleware
 	if gateway.RateLimiter != 0 {
 		rateLimiter := middleware.NewRateLimiter(gateway.RateLimiter, time.Minute)
 		// Add rate limit middleware to all routes, if defined
 		r.Use(rateLimiter.RateLimitMiddleware())
 	}
+
 	// Add Main route
 	for _, route := range gateway.Routes {
 		blM := middleware.BlockListMiddleware{
-			Prefix: route.Path,
-			List:   route.Blocklist,
+			Path: route.Path,
+			List: route.Blocklist,
 		}
 		// Add block access middleware to all route, if defined
 		r.Use(blM.BlocklistMiddleware)
 		if route.Middlewares != nil {
 			for _, mid := range route.Middlewares {
 				secureRouter := r.PathPrefix(route.Path + mid.Path).Subrouter()
-				secureRouter.Use(CORSHandler(route.Cors)) // Apply CORS middleware
 				if mid.Http.URL != "" {
 					amw := middleware.AuthenticationMiddleware{
 						AuthURL:         mid.Http.URL,
@@ -46,8 +48,9 @@ func (gatewayServer GatewayServer) Initialize() *mux.Router {
 						rewrite:         route.Rewrite,
 						destination:     route.Destination,
 						disableXForward: route.DisableHeaderXForward,
+						cors:            route.Cors,
 					}
-					// Apply authentication middleware
+					// Apply JWT authentication middleware
 					secureRouter.Use(amw.AuthMiddleware)
 					secureRouter.PathPrefix("/").Handler(proxyRoute.ProxyHandler()) // Proxy handler
 					secureRouter.PathPrefix("").Handler(proxyRoute.ProxyHandler())  // Proxy handler
@@ -62,9 +65,11 @@ func (gatewayServer GatewayServer) Initialize() *mux.Router {
 							rewrite:         route.Rewrite,
 							destination:     route.Destination,
 							disableXForward: route.DisableHeaderXForward,
+							cors:            route.Cors,
 						}
 						// Apply basic authentication middleware
 						secureRouter.Use(amw.BasicAuthMiddleware())
+						secureRouter.Use(CORSHandler(route.Cors))
 						secureRouter.PathPrefix("/").Handler(proxyRoute.ProxyHandler()) // Proxy handler
 						secureRouter.PathPrefix("").Handler(proxyRoute.ProxyHandler())  // Proxy handler
 					}
@@ -77,9 +82,11 @@ func (gatewayServer GatewayServer) Initialize() *mux.Router {
 			rewrite:         route.Rewrite,
 			destination:     route.Destination,
 			disableXForward: route.DisableHeaderXForward,
+			cors:            route.Cors,
 		}
+
 		router := r.PathPrefix(route.Path).Subrouter()
-		router.Use(CORSHandler(gateway.Cors)) // Apply CORS middleware
+		router.Use(CORSHandler(route.Cors))
 		router.PathPrefix("/").Handler(proxyRoute.ProxyHandler())
 
 	}

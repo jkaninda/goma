@@ -11,18 +11,24 @@ import (
 // CORSHandler handles CORS headers for incoming requests
 //
 // Adds CORS headers to the response dynamically based on the provided headers map[string]string
-func CORSHandler(cors map[string]string) mux.MiddlewareFunc {
+func CORSHandler(cors Cors) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Set CORS headers from the cors config
-			if cors != nil {
-				for k, v := range cors {
-					w.Header().Set(k, v)
+			//Update Cors Headers
+			for k, v := range cors.Headers {
+				w.Header().Set(k, v)
+			}
+			//Update Origin Cors Headers
+			for _, origin := range cors.Origins {
+				if origin == r.Header.Get("Origin") {
+					w.Header().Set("Access-Control-Allow-Origin", origin)
+
 				}
 			}
 			// Handle preflight requests (OPTIONS)
 			if r.Method == "OPTIONS" {
-				w.WriteHeader(http.StatusOK)
+				w.WriteHeader(http.StatusNoContent)
 				return
 			}
 			// Pass the request to the next handler

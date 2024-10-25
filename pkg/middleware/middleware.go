@@ -45,8 +45,9 @@ type AuthenticationMiddleware struct {
 	Params          map[string]string
 }
 type BlockListMiddleware struct {
-	Prefix string
-	List   []string
+	Path        string
+	Destination string
+	List        []string
 }
 
 // BasicAuth  Define Basic auth

@@ -19,6 +19,25 @@ type BasicMiddle struct {
 	Password string `yaml:"password"`
 }
 
+type Cors struct {
+	// Cors Allowed origins,
+	//e.g:
+	//
+	// - http://localhost:80
+	//
+	// - https://example.com
+	Origins []string `yaml:"origins"`
+	//
+	//e.g:
+	//
+	//Access-Control-Allow-Origin: '*'
+	//
+	//    Access-Control-Allow-Methods: 'GET, POST, PUT, DELETE, OPTIONS'
+	//
+	//    Access-Control-Allow-Cors: 'Content-Type, Authorization'
+	Headers map[string]string `yaml:"headers"`
+}
+
 // HttpMiddle authentication using HTTP GET method
 //
 // HttpMiddle contains the authentication details
@@ -70,7 +89,7 @@ type Route struct {
 	// Destination Defines backend URL
 	Destination string `yaml:"destination"`
 	// Cors contains the route cors headers
-	Cors map[string]string `yaml:"cors"`
+	Cors Cors `yaml:"cors"`
 	// DisableHeaderXForward Disable X-forwarded header.
 	//
 	// [X-Forwarded-Host, X-Forwarded-For, Host, Scheme ]
@@ -104,16 +123,8 @@ type Gateway struct {
 	DisableRouteHealthCheckError bool   `yaml:"disableRouteHealthCheckError"`
 	//Disable dispelling routes on start
 	DisableDisplayRouteOnStart bool `yaml:"disableDisplayRouteOnStart"`
-	// Cors contains the proxy headers
-	//
-	//e.g:
-	//
-	//Access-Control-Allow-Origin: '*'
-	//
-	//    Access-Control-Allow-Methods: 'GET, POST, PUT, DELETE, OPTIONS'
-	//
-	//    Access-Control-Allow-Cors: 'Content-Type, Authorization'
-	Cors map[string]string `yaml:"cors"`
+	// Cors contains the proxy global cors
+	Cors Cors `yaml:"cors"`
 	// Routes defines the proxy routes
 	Routes []Route `yaml:"routes"`
 }
@@ -201,10 +212,13 @@ func initConfig(configFile string) {
 			ErrorLog:                     "/dev/stderr",
 			DisableRouteHealthCheckError: false,
 			DisableDisplayRouteOnStart:   false,
-			Cors: map[string]string{
-				"Access-Control-Allow-Origin":  "*",
-				"Access-Control-Allow-Cors":    "*",
-				"Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+			Cors: Cors{
+				Origins: []string{"http://localhost:8080", "https://example.com"},
+				Headers: map[string]string{
+					"Access-Control-Allow-Headers":     "Origin, Authorization, Accept, Content-Type, Access-Control-Allow-Headers, X-Client-Id, X-Session-Id",
+					"Access-Control-Allow-Credentials": "true",
+					"Access-Control-Max-Age":           "1728000",
+				},
 			},
 			Routes: []Route{
 				{
@@ -213,10 +227,13 @@ func initConfig(configFile string) {
 					Destination: "http://localhost:8080",
 					Rewrite:     "/health",
 					HealthCheck: "",
-					Cors: map[string]string{
-						"Access-Control-Allow-Origin":  "*",
-						"Access-Control-Allow-Cors":    "*",
-						"Access-Control-Allow-Methods": "GET, OPTIONS",
+					Cors: Cors{
+						Origins: []string{"http://localhost:8080", "https://example.com"},
+						Headers: map[string]string{
+							"Access-Control-Allow-Headers":     "Origin, Authorization, Accept, Content-Type, Access-Control-Allow-Headers, X-Client-Id, X-Session-Id",
+							"Access-Control-Allow-Credentials": "true",
+							"Access-Control-Max-Age":           "1728000",
+						},
 					},
 					Middlewares: []Middleware{
 						{
