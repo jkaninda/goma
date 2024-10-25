@@ -5,6 +5,7 @@ compose.yaml
 test.md
 .DS_Store
 goma-gateway
+goma
 /.idea
 bin
 Makefile

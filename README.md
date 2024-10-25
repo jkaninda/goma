@@ -1,6 +1,50 @@
-# Goma Gateway
+# Goma - simple lightweight API Gateway and Reverse Proxy.
 
-Goma is a lightweight API Gateway, Reverse Proxy.
+```
+   _____                       
+  / ____|                      
+ | |  __  ___  _ __ ___   __ _ 
+ | | |_ |/ _ \| '_ ` _ \ / _` |
+ | |__| | (_) | | | | | | (_| |
+  \_____|\___/|_| |_| |_|\__,_|
+                               
+```
+Goma is a lightweight API Gateway and Reverse Proxy.
+
+### Feature
+
+- [x] Reverse proxy 
+- [x] API Gateway 
+- [x] Cors
+- [ ] Add Load balancing feature
+- [ ] Support TLS
+- [x] Authentication middleware
+  - [x] JWT `HTTP Bearer Token` 
+  - [x] Basic-Auth
+  - [ ] OAuth2
+- [ ] Implement rate limiting
+  - [x] In-Memory Token Bucket
+  - [ ] Distributed Rate Limiting for Token based across multiple instances
+
+## Usage
+
+### 1. Initialize configuration
+
+```shell
+docker run --rm  --name goma \
+ -v "${PWD}/config:/config" \
+ jkaninda/goma-gateway config init --output /config/goma.yml
+```
+### 2. Run 
+
+```shell
+docker run --rm --name goma \
+ -v "${PWD}/config:/config" \
+ -p 8080:80 \
+ jkaninda/goma-gateway server --config /config/goma.yml
+```
+Create a config file in this format
+## Customize configuration file
 
 Example of configuration file
 ```yaml
@@ -12,6 +56,11 @@ gateway:
   readTimeout: 15
   idleTimeout: 60
   rateLimiter: 0
+  accessLog:    "/dev/Stdout"
+  errorLog:     "/dev/stderr"
+  ## Returns backend route healthcheck errors
+  enableRouteHealthCheckError: false
+  displayRouteOnStart: true
   cors:
     Access-Control-Allow-Origin: '*'
     Access-Control-Allow-Methods: 'GET, POST, PUT, DELETE, OPTIONS'
@@ -20,6 +69,7 @@ gateway:
   routes:
     - name: Store
       path: /store
+      ## Rewrite request path /store to /
       rewrite: /
       destination: 'http://store-service:8080'
       # Internal healthCheck
@@ -99,3 +149,7 @@ gateway:
       blocklist: []
       middlewares: []
 ```
+
+## Requirement
+
+- Docker

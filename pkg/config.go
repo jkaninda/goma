@@ -9,6 +9,11 @@ import (
 	"os"
 )
 
+var cfg *Gateway
+
+type Config struct {
+	file string
+}
 type BasicMiddle struct {
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
@@ -21,7 +26,7 @@ type HttpMiddle struct {
 	// URL contains the authentication URL, it supports HTTP GET method only.
 	URL string `yaml:"url"`
 	// RequiredHeaders , contains required before sending request to the backend.
-	RequiredHeaders []string `yaml:"requiredHeaders,omitempty"`
+	RequiredHeaders []string `yaml:"requiredHeaders"`
 	// Headers Add header to the backend from Authentication request's header, depending on your requirements.
 	// Key is Http's response header Key, and value  is the backend Request's header Key.
 	// In case you want to get headers from Authentication service and inject them to backend request's headers.
@@ -76,15 +81,21 @@ type Gateway struct {
 	// ListenAddr Defines the server listenAddr
 	//
 	//e.g: localhost:8080
-	ListenAddr string `yaml:"listenAddr"`
+	ListenAddr string `yaml:"listenAddr" env:"GOMA_LISTEN_ADDR, overwrite"`
 	// WriteTimeout defines proxy write timeout
-	WriteTimeout int `yaml:"writeTimeout"`
+	WriteTimeout int `yaml:"writeTimeout" env:"GOMA_WRITE_TIMEOUT, overwrite"`
 	// ReadTimeout defines proxy read timeout
-	ReadTimeout int `yaml:"readTimeout"`
+	ReadTimeout int `yaml:"readTimeout" env:"GOMA_READ_TIMEOUT, overwrite"`
 	// IdleTimeout defines proxy idle timeout
-	IdleTimeout int `yaml:"idleTimeout"`
+	IdleTimeout int `yaml:"idleTimeout" env:"GOMA_IDLE_TIMEOUT, overwrite"`
 	// RateLimiter Defines routes rateLimiter
-	RateLimiter int `yaml:"rateLimiter"`
+	RateLimiter int    `yaml:"rateLimiter" env:"GOMA_RATE_LIMITER, overwrite"`
+	AccessLog   string `yaml:"accessLog" env:"GOMA_ACCESS_LOG, overwrite"`
+	ErrorLog    string `yaml:"errorLog" env:"GOMA_ERROR_LOG=, overwrite"`
+	//EnableRouteHealthCheck      bool   `yaml:"enableRouteHealthCheck" env:"GOMA_ENABLE_ROUTE_HEALTH_CHECK, overwrite"`
+	//RouteHealthCheckTime        int    `yaml:"routeHealthCheckTime" env:"GOMA_ROUTE_HEALTH_CHECK_TIME, overwrite"`
+	EnableRouteHealthCheckError bool `yaml:"enableRouteHealthCheckError" env:"GOMA_ENABLE_ROUTE_HEALTH_CHECK_ERROR, overwrite"`
+	DisplayRouteOnStart         bool `yaml:"displayRouteOnStart"`
 	// Cors contains the proxy headers
 	//
 	//e.g:
@@ -108,25 +119,37 @@ type ErrorResponse struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
 }
+type GatewayServer struct {
+	gateway         Gateway
+	HealthyCallback func()
+	stop            chan struct{} // channel for waiting shutdown
+}
 
-// config reads config file and returns Gateway
-func loadConf(configFile string) (*Gateway, error) {
+// New reads config file and returns Gateway
+func (GatewayServer) New(configFile string) (*GatewayServer, error) {
 	if util.FileExists(configFile) {
 		buf, err := os.ReadFile(configFile)
 		if err != nil {
 			return nil, err
 		}
-
+		util.SetEnv("GOMA_CONFIG_FILE", configFile)
 		c := &GatewayConfig{}
 		err = yaml.Unmarshal(buf, c)
 		if err != nil {
 			return nil, fmt.Errorf("in file %q: %w", configFile, err)
 		}
-		return &c.GatewayConfig, err
+		return &GatewayServer{
+			stop:    make(chan struct{}),
+			gateway: c.GatewayConfig,
+			HealthyCallback: func() {
+				logger.Info("Healthcheck call back")
+			},
+		}, nil
 	}
 	logger.Error("configuration file not found: %v", configFile)
 	logger.Info("Generating new configuration file...")
 	initConfig(ConfigFile)
+	util.SetEnv("GOMA_CONFIG_FILE", ConfigFile)
 	buf, err := os.ReadFile(ConfigFile)
 	if err != nil {
 		return nil, err
@@ -138,16 +161,19 @@ func loadConf(configFile string) (*Gateway, error) {
 	}
 	logger.Info("Generating new configuration file...done")
 	logger.Info("Starting server with default configuration")
-	return &c.GatewayConfig, err
+	return &GatewayServer{
+		stop:    make(chan struct{}),
+		gateway: c.GatewayConfig,
+	}, nil
 	//return nil, fmt.Errorf("configuration file not found: %v", configFile)
 }
-func getConfigFile() string {
-	return util.GetStringEnv("GOMA_PROXY_CONFIG_FILE", ConfigFile)
+func GetConfigPaths() string {
+	return util.GetStringEnv("GOMAY_CONFIG_FILE", ConfigFile)
 }
 func InitConfig(cmd *cobra.Command) {
-	configFile, _ := cmd.Flags().GetString("config")
+	configFile, _ := cmd.Flags().GetString("output")
 	if configFile == "" {
-		configFile = getConfigFile()
+		configFile = GetConfigPaths()
 	}
 	initConfig(configFile)
 	return
@@ -155,18 +181,22 @@ func InitConfig(cmd *cobra.Command) {
 }
 func initConfig(configFile string) {
 	if configFile == "" {
-		configFile = getConfigFile()
+		configFile = GetConfigPaths()
 	}
 	conf := &GatewayConfig{
 		GatewayConfig: Gateway{
-			ListenAddr:   "0.0.0.0:8080",
-			WriteTimeout: 15,
-			ReadTimeout:  15,
-			IdleTimeout:  60,
+			ListenAddr:                  "0.0.0.0:80",
+			WriteTimeout:                15,
+			ReadTimeout:                 15,
+			IdleTimeout:                 60,
+			AccessLog:                   "/dev/Stdout",
+			ErrorLog:                    "/dev/stderr",
+			EnableRouteHealthCheckError: false,
+			DisplayRouteOnStart:         true,
 			Cors: map[string]string{
 				"Access-Control-Allow-Origin":  "*",
 				"Access-Control-Allow-Cors":    "*",
-				"Access-Control-Allow-Methods": "*",
+				"Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
 			},
 			Routes: []Route{
 				{
@@ -175,7 +205,11 @@ func initConfig(configFile string) {
 					Destination: "http://localhost:8080",
 					Rewrite:     "/health",
 					HealthCheck: "",
-					Cors:        map[string]string{},
+					Cors: map[string]string{
+						"Access-Control-Allow-Origin":  "*",
+						"Access-Control-Allow-Cors":    "*",
+						"Access-Control-Allow-Methods": "GET, OPTIONS",
+					},
 					Middlewares: []Middleware{
 						{
 							Path:  "/admin",
@@ -213,4 +247,29 @@ func initConfig(configFile string) {
 		logger.Fatal("Unable to write config file %s", err)
 	}
 	logger.Info("Configuration file has been initialized successfully")
+}
+func Get() *Gateway {
+	if cfg == nil {
+		c := &Gateway{}
+		c.Setup(GetConfigPaths())
+		cfg = c
+	}
+	return cfg
+}
+func (Gateway) Setup(conf string) *Gateway {
+	if util.FileExists(conf) {
+		buf, err := os.ReadFile(conf)
+		if err != nil {
+			return &Gateway{}
+		}
+		util.SetEnv("GOMA_CONFIG_FILE", conf)
+		c := &GatewayConfig{}
+		err = yaml.Unmarshal(buf, c)
+		if err != nil {
+			logger.Fatal("Error loading configuration %v", err.Error())
+		}
+		return &c.GatewayConfig
+	}
+	return &Gateway{}
+
 }

@@ -35,3 +35,25 @@ func GetIntEnv(key string, defaultValue int) int {
 	return i
 
 }
+func GetBoolEnv(key string, defaultValue bool) bool {
+	val := os.Getenv(key)
+	if val == "" {
+		return defaultValue
+
+	}
+	b, err := strconv.ParseBool(val)
+	if err != nil {
+		return defaultValue
+	}
+	return b
+
+}
+
+// SetEnv Set env
+func SetEnv(name, value string) {
+	err := os.Setenv(name, value)
+	if err != nil {
+		return
+	}
+
+}

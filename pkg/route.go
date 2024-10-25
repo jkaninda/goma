@@ -8,10 +8,12 @@ import (
 	"time"
 )
 
-func (gateway Gateway) Initialize() *mux.Router {
+func (gatewayServer GatewayServer) Initialize() *mux.Router {
+	gateway := gatewayServer.gateway
 	r := mux.NewRouter()
 	heath := HealthCheckRoute{
-		Routes: gateway.Routes,
+		EnableRouteHealthCheckError: gateway.EnableRouteHealthCheckError,
+		Routes:                      gateway.Routes,
 	}
 	// Define the health check route
 	r.HandleFunc("/health", heath.HealthCheckHandler).Methods("GET")
@@ -41,8 +43,8 @@ func (gateway Gateway) Initialize() *mux.Router {
 					}
 					// Apply authentication middleware
 					secureRouter.Use(amw.AuthMiddleware)
-					secureRouter.PathPrefix("/").Handler(ProxyHandler(route.Destination, route.Path, route.Rewrite)) // Proxy handler
-					secureRouter.PathPrefix("").Handler(ProxyHandler(route.Destination, route.Path, route.Rewrite))  // Proxy handler
+					secureRouter.PathPrefix("/").Handler(ProxyHandler(route.Path, route.Rewrite, route.Destination)) // Proxy handler
+					secureRouter.PathPrefix("").Handler(ProxyHandler(route.Path, route.Rewrite, route.Destination))  // Proxy handler
 				} else {
 					if mid.Basic.Username != "" {
 						amw := middleware.BasicAuth{
@@ -51,8 +53,8 @@ func (gateway Gateway) Initialize() *mux.Router {
 						}
 						// Apply basic authentication middleware
 						secureRouter.Use(amw.BasicAuthMiddleware())
-						secureRouter.PathPrefix("/").Handler(ProxyHandler(route.Destination, route.Path, route.Rewrite)) // Proxy handler
-						secureRouter.PathPrefix("").Handler(ProxyHandler(route.Destination, route.Path, route.Rewrite))  // Proxy handler
+						secureRouter.PathPrefix("/").Handler(ProxyHandler(route.Path, route.Rewrite, route.Destination)) // Proxy handler
+						secureRouter.PathPrefix("").Handler(ProxyHandler(route.Path, route.Rewrite, route.Destination))  // Proxy handler
 					}
 				}
 
@@ -60,10 +62,9 @@ func (gateway Gateway) Initialize() *mux.Router {
 		}
 		router := r.PathPrefix(route.Path).Subrouter()
 		router.Use(CORSHandler(gateway.Cors)) // Apply CORS middleware
-		router.PathPrefix("/").Handler(ProxyHandler(route.Destination, route.Path, route.Rewrite))
+		router.PathPrefix("/").Handler(ProxyHandler(route.Path, route.Rewrite, route.Destination))
 
 	}
-	printRoute(gateway.Routes)
 	return r
 
 }

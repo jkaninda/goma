@@ -2,36 +2,26 @@ package pkg
 
 import (
 	"github.com/jkaninda/goma-gateway/internal/logger"
-	"github.com/spf13/cobra"
-	"log"
 	"net/http"
-	"os"
 	"time"
 )
 
-func Start(cmd *cobra.Command) {
-	log.SetOutput(os.Stdout)
-	Intro()
-	configFile, _ := cmd.Flags().GetString("config")
-	if configFile == "" {
-		configFile = getConfigFile()
-	}
-	gateway, err := loadConf(configFile)
-	if err != nil {
-		logger.Fatal("Could not load configuration: %v", err)
-	}
+func (gatewayServer GatewayServer) Start() {
 	logger.Info("Initializing routes...")
-	route := gateway.Initialize()
-	server := &http.Server{
-		Addr:         gateway.ListenAddr,
-		WriteTimeout: time.Second * time.Duration(gateway.WriteTimeout),
-		ReadTimeout:  time.Second * time.Duration(gateway.ReadTimeout),
-		IdleTimeout:  time.Second * time.Duration(gateway.IdleTimeout),
+	route := gatewayServer.Initialize()
+	logger.Info("Initializing routes...done")
+	srv := &http.Server{
+		Addr:         gatewayServer.gateway.ListenAddr,
+		WriteTimeout: time.Second * time.Duration(gatewayServer.gateway.WriteTimeout),
+		ReadTimeout:  time.Second * time.Duration(gatewayServer.gateway.ReadTimeout),
+		IdleTimeout:  time.Second * time.Duration(gatewayServer.gateway.IdleTimeout),
 		Handler:      route, // Pass our instance of gorilla/mux in.
 	}
-	logger.Info("Initializing routes...done")
-	logger.Info("Started Goma Gateway server on %v", gateway.ListenAddr)
-	if err := server.ListenAndServe(); err != nil {
+	if gatewayServer.gateway.DisplayRouteOnStart {
+		printRoute(gatewayServer.gateway.Routes)
+	}
+	logger.Info("Started Goma Gateway server on %v", gatewayServer.gateway.ListenAddr)
+	if err := srv.ListenAndServe(); err != nil {
 		logger.Fatal("Error starting Goma Gateway server: %v", err)
 	}
 
