@@ -50,9 +50,40 @@ docker run --rm  --name goma \
 ```shell
 docker run --rm --name goma \
  -v "${PWD}/config:/config" \
- -p 8080:80 \
+ -p 80:80 \
  jkaninda/goma server --config /config/goma.yml
 ```
+### 3. Healthcheck
+
+[http://localhost/health](http://localhost/health)
+
+> Healthcheck response body
+
+```json
+{
+	"status": "healthy",
+	"routes": [
+		{
+			"name": "Store",
+			"status": "healthy",
+			"error": ""
+		},
+		{
+			"name": "Authentication service",
+			"status": "unhealthy",
+          "error": "error performing HealthCheck request: Get \"http://notification-service:8080/internal/health/ready\": dial tcp: lookup notification-service on 127.0.0.11:53: no such host "
+          
+		},
+		{
+			"name": "Notification",
+			"status": "undefined",
+			"error": ""
+		}
+	]
+}
+```
+
+
 Create a config file in this format
 ## Customize configuration file
 
