@@ -8,17 +8,19 @@ import (
 )
 
 type HealthCheckRoute struct {
-	Routes []Route
+	EnableRouteHealthCheckError bool
+	Routes                      []Route
 }
 
 // HealthCheckResponse represents the health check response structure
 type HealthCheckResponse struct {
 	Status string                     `json:"status"`
-	Routes []HealthCheckRouteResponse `json:"routes,omitempty"`
+	Routes []HealthCheckRouteResponse `json:"routes"`
 }
 type HealthCheckRouteResponse struct {
 	Name   string `json:"name"`
 	Status string `json:"status"`
+	Error  string `json:"error"`
 }
 
 func HealthCheck(healthURL string) error {
@@ -34,13 +36,17 @@ func HealthCheck(healthURL string) error {
 	// Perform the request to the route's healthcheck
 	client := &http.Client{}
 	healthResp, err := client.Do(healthReq)
-	if err != nil || healthResp.StatusCode != http.StatusOK {
-		return fmt.Errorf("error checking route heath: %v ", err)
+	if err != nil {
+		return fmt.Errorf("error performing HealthCheck request: %v ", err)
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
 		}
 	}(healthResp.Body)
+
+	if healthResp.StatusCode >= 400 {
+		return fmt.Errorf("health check failed with status code %v", healthResp.StatusCode)
+	}
 	return nil
 }

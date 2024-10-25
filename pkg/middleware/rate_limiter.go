@@ -14,10 +14,11 @@ func (rl *RateLimiter) RateLimitMiddleware() mux.MiddlewareFunc {
 				// Rate limit exceeded, return a 429 Too Many Requests response
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusTooManyRequests)
-				err := json.NewEncoder(w).Encode(map[string]interface{}{
-					"success": false,
-					"code":    http.StatusTooManyRequests,
-					"message": "Too many requests. Please try again later.",
+				w.WriteHeader(http.StatusUnauthorized)
+				err := json.NewEncoder(w).Encode(ProxyResponseError{
+					Success: false,
+					Code:    http.StatusTooManyRequests,
+					Message: "Too many requests. Please try again later.",
 				})
 				if err != nil {
 					return

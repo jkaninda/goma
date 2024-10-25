@@ -20,5 +20,5 @@ var InitConfigCmd = &cobra.Command{
 }
 
 func init() {
-	InitConfigCmd.Flags().StringP("config", "c", "", "config file output")
+	InitConfigCmd.Flags().StringP("output", "o", "", "config file output")
 }

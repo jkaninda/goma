@@ -32,7 +32,6 @@ func Execute() {
 }
 func init() {
 	rootCmd.AddCommand(ServerCmd)
-	rootCmd.AddCommand(StopCmd)
 	rootCmd.AddCommand(config.Cmd)
 
 }

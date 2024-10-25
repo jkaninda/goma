@@ -16,12 +16,18 @@ var ServerCmd = &cobra.Command{
 	Use:   "server",
 	Short: "Start server",
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) == 0 {
-			pkg.Start(cmd)
-		} else {
-			logger.Fatal(`"server" accepts no argument %q`, args)
-
+		pkg.Intro()
+		configFile, _ := cmd.Flags().GetString("config")
+		if configFile == "" {
+			configFile = pkg.GetConfigPaths()
 		}
+
+		g := pkg.GatewayServer{}
+		gs, err := g.New(configFile)
+		if err != nil {
+			logger.Fatal("Could not load configuration: %v", err)
+		}
+		gs.Start()
 
 	},
 }
