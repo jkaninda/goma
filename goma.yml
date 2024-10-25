@@ -1,65 +1,4 @@
 # Goma - simple lightweight API Gateway and Reverse Proxy.
-
-```
-   _____                       
-  / ____|                      
- | |  __  ___  _ __ ___   __ _ 
- | | |_ |/ _ \| '_ ` _ \ / _` |
- | |__| | (_) | | | | | | (_| |
-  \_____|\___/|_| |_| |_|\__,_|
-                               
-```
-Goma is a lightweight API Gateway and Reverse Proxy.
-
-[![Build](https://github.com/jkaninda/goma/actions/workflows/release.yml/badge.svg)](https://github.com/jkaninda/goma/actions/workflows/release.yml)
-[![Go Report](https://goreportcard.com/badge/github.com/jkaninda/mysql-bkup)](https://goreportcard.com/report/github.com/jkaninda/goma)
-![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/jkaninda/goma?style=flat-square)
-![Docker Pulls](https://img.shields.io/docker/pulls/jkaninda/goma?style=flat-square)
-
-## Links:
-
-- [Docker Hub](https://hub.docker.com/r/jkaninda/goma)
-- [Github](https://github.com/jkaninda/goma)
-
-### Feature
-
-- [x] Reverse proxy 
-- [x] API Gateway 
-- [x] Cors
-- [ ] Add Load balancing feature
-- [ ] Support TLS
-- [x] Authentication middleware
-  - [x] JWT `HTTP Bearer Token` 
-  - [x] Basic-Auth
-  - [ ] OAuth2
-- [ ] Implement rate limiting
-  - [x] In-Memory Token Bucket
-  - [ ] Distributed Rate Limiting for Token based across multiple instances
-
-## Usage
-
-### 1. Initialize configuration
-
-```shell
-docker run --rm  --name goma \
- -v "${PWD}/config:/config" \
- jkaninda/goma config init --output /config/goma.yml
-```
-### 2. Run 
-
-```shell
-docker run --rm --name goma \
- -v "${PWD}/config:/config" \
- -p 8080:80 \
- jkaninda/goma server --config /config/goma.yml
-```
-Create a config file in this format
-## Customize configuration file
-
-Example of configuration file
-```yaml
-##### Goma Gateway configurations
-# Goma - simple lightweight API Gateway and Reverse Proxy.
 # Goma Gateway configurations
 gateway:
   ########## Global settings
@@ -162,8 +101,3 @@ gateway:
       cors: {}
       blocklist: []
       middlewares: []
-```
-
-## Requirement
-
-- Docker

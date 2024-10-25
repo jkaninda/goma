@@ -41,28 +41,46 @@ func (gatewayServer GatewayServer) Initialize() *mux.Router {
 						Headers:         mid.Http.Headers,
 						Params:          mid.Http.Params,
 					}
+					proxyRoute := ProxyRoute{
+						path:            route.Path,
+						rewrite:         route.Rewrite,
+						destination:     route.Destination,
+						disableXForward: route.DisableHeaderXForward,
+					}
 					// Apply authentication middleware
 					secureRouter.Use(amw.AuthMiddleware)
-					secureRouter.PathPrefix("/").Handler(ProxyHandler(route.Path, route.Rewrite, route.Destination)) // Proxy handler
-					secureRouter.PathPrefix("").Handler(ProxyHandler(route.Path, route.Rewrite, route.Destination))  // Proxy handler
+					secureRouter.PathPrefix("/").Handler(proxyRoute.ProxyHandler()) // Proxy handler
+					secureRouter.PathPrefix("").Handler(proxyRoute.ProxyHandler())  // Proxy handler
 				} else {
 					if mid.Basic.Username != "" {
 						amw := middleware.BasicAuth{
 							Username: mid.Basic.Username,
 							Password: mid.Basic.Password,
 						}
+						proxyRoute := ProxyRoute{
+							path:            route.Path,
+							rewrite:         route.Rewrite,
+							destination:     route.Destination,
+							disableXForward: route.DisableHeaderXForward,
+						}
 						// Apply basic authentication middleware
 						secureRouter.Use(amw.BasicAuthMiddleware())
-						secureRouter.PathPrefix("/").Handler(ProxyHandler(route.Path, route.Rewrite, route.Destination)) // Proxy handler
-						secureRouter.PathPrefix("").Handler(ProxyHandler(route.Path, route.Rewrite, route.Destination))  // Proxy handler
+						secureRouter.PathPrefix("/").Handler(proxyRoute.ProxyHandler()) // Proxy handler
+						secureRouter.PathPrefix("").Handler(proxyRoute.ProxyHandler())  // Proxy handler
 					}
 				}
 
 			}
 		}
+		proxyRoute := ProxyRoute{
+			path:            route.Path,
+			rewrite:         route.Rewrite,
+			destination:     route.Destination,
+			disableXForward: route.DisableHeaderXForward,
+		}
 		router := r.PathPrefix(route.Path).Subrouter()
 		router.Use(CORSHandler(gateway.Cors)) // Apply CORS middleware
-		router.PathPrefix("/").Handler(ProxyHandler(route.Path, route.Rewrite, route.Destination))
+		router.PathPrefix("/").Handler(proxyRoute.ProxyHandler())
 
 	}
 	return r

@@ -50,7 +50,10 @@ type Middleware struct {
 	// Http authentication using HTTP GET method
 	//
 	// Http contains the authentication details
-	Http  HttpMiddle  `yaml:"http"`
+	Http HttpMiddle `yaml:"http"`
+	// Basic contains basic-auth authentication details
+	//
+	// Protects a route path with Basic-Auth
 	Basic BasicMiddle `yaml:"basic"`
 }
 
@@ -68,7 +71,13 @@ type Route struct {
 	Destination string `yaml:"destination"`
 	// Cors contains the route cors headers
 	Cors map[string]string `yaml:"cors"`
-	// HealthCheck Defines the backend is health check
+	// DisableHeaderXForward Disable X-forwarded header.
+	//
+	// [X-Forwarded-Host, X-Forwarded-For, Host, Scheme ]
+	//
+	// It will not match the backend route
+	DisableHeaderXForward bool `yaml:"disableHeaderXForward"`
+	// HealthCheck Defines the backend is health check PATH
 	HealthCheck string `yaml:"healthCheck"`
 	// Blocklist Defines route blacklist
 	Blocklist []string `yaml:"blocklist"`
