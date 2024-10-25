@@ -50,7 +50,10 @@ type Middleware struct {
 	// Http authentication using HTTP GET method
 	//
 	// Http contains the authentication details
-	Http  HttpMiddle  `yaml:"http"`
+	Http HttpMiddle `yaml:"http"`
+	// Basic contains basic-auth authentication details
+	//
+	// Protects a route path with Basic-Auth
 	Basic BasicMiddle `yaml:"basic"`
 }
 
@@ -68,7 +71,13 @@ type Route struct {
 	Destination string `yaml:"destination"`
 	// Cors contains the route cors headers
 	Cors map[string]string `yaml:"cors"`
-	// HealthCheck Defines the backend is health check
+	// DisableHeaderXForward Disable X-forwarded header.
+	//
+	// [X-Forwarded-Host, X-Forwarded-For, Host, Scheme ]
+	//
+	// It will not match the backend route
+	DisableHeaderXForward bool `yaml:"disableHeaderXForward"`
+	// HealthCheck Defines the backend is health check PATH
 	HealthCheck string `yaml:"healthCheck"`
 	// Blocklist Defines route blacklist
 	Blocklist []string `yaml:"blocklist"`
@@ -89,13 +98,12 @@ type Gateway struct {
 	// IdleTimeout defines proxy idle timeout
 	IdleTimeout int `yaml:"idleTimeout" env:"GOMA_IDLE_TIMEOUT, overwrite"`
 	// RateLimiter Defines routes rateLimiter
-	RateLimiter int    `yaml:"rateLimiter" env:"GOMA_RATE_LIMITER, overwrite"`
-	AccessLog   string `yaml:"accessLog" env:"GOMA_ACCESS_LOG, overwrite"`
-	ErrorLog    string `yaml:"errorLog" env:"GOMA_ERROR_LOG=, overwrite"`
-	//EnableRouteHealthCheck      bool   `yaml:"enableRouteHealthCheck" env:"GOMA_ENABLE_ROUTE_HEALTH_CHECK, overwrite"`
-	//RouteHealthCheckTime        int    `yaml:"routeHealthCheckTime" env:"GOMA_ROUTE_HEALTH_CHECK_TIME, overwrite"`
-	EnableRouteHealthCheckError bool `yaml:"enableRouteHealthCheckError" env:"GOMA_ENABLE_ROUTE_HEALTH_CHECK_ERROR, overwrite"`
-	DisplayRouteOnStart         bool `yaml:"displayRouteOnStart"`
+	RateLimiter                  int    `yaml:"rateLimiter" env:"GOMA_RATE_LIMITER, overwrite"`
+	AccessLog                    string `yaml:"accessLog" env:"GOMA_ACCESS_LOG, overwrite"`
+	ErrorLog                     string `yaml:"errorLog" env:"GOMA_ERROR_LOG=, overwrite"`
+	DisableRouteHealthCheckError bool   `yaml:"disableRouteHealthCheckError"`
+	//Disable dispelling routes on start
+	DisableDisplayRouteOnStart bool `yaml:"disableDisplayRouteOnStart"`
 	// Cors contains the proxy headers
 	//
 	//e.g:
@@ -185,14 +193,14 @@ func initConfig(configFile string) {
 	}
 	conf := &GatewayConfig{
 		GatewayConfig: Gateway{
-			ListenAddr:                  "0.0.0.0:80",
-			WriteTimeout:                15,
-			ReadTimeout:                 15,
-			IdleTimeout:                 60,
-			AccessLog:                   "/dev/Stdout",
-			ErrorLog:                    "/dev/stderr",
-			EnableRouteHealthCheckError: false,
-			DisplayRouteOnStart:         true,
+			ListenAddr:                   "0.0.0.0:80",
+			WriteTimeout:                 15,
+			ReadTimeout:                  15,
+			IdleTimeout:                  60,
+			AccessLog:                    "/dev/Stdout",
+			ErrorLog:                     "/dev/stderr",
+			DisableRouteHealthCheckError: false,
+			DisableDisplayRouteOnStart:   false,
 			Cors: map[string]string{
 				"Access-Control-Allow-Origin":  "*",
 				"Access-Control-Allow-Cors":    "*",
