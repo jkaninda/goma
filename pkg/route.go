@@ -82,6 +82,7 @@ func (gatewayServer GatewayServer) Initialize() *mux.Router {
 			rewrite:         route.Rewrite,
 			destination:     route.Destination,
 			disableXForward: route.DisableHeaderXForward,
+			cors:            route.Cors,
 		}
 
 		router := r.PathPrefix(route.Path).Subrouter()
