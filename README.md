@@ -32,9 +32,11 @@ Goma is a lightweight API Gateway and Reverse Proxy.
   - [x] JWT `HTTP Bearer Token`
   - [x] Basic-Auth
   - [ ] OAuth2
-- [ ] Implement rate limiting
-  - [x] In-Memory Token Bucket
-  - [ ] Distributed Rate Limiting for Token based across multiple instances
+- [x] Implement rate limiting
+  - [x] In-Memory Token Bucket based
+  - [ ] In-Memory client IP based
+  - [ ] Distributed Rate Limiting for Token based across multiple instances using Redis
+  - [ ] Distributed Rate Limiting for In-Memory client IP based across multiple instances  using Redis
 
 ## Usage
 
