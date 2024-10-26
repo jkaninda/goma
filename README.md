@@ -99,7 +99,7 @@ Create a config file in this format
 
 Example of configuration file
 ```yaml
-### Goma - simple lightweight API Gateway and Reverse Proxy.
+## Goma - simple lightweight API Gateway and Reverse Proxy.
 # Goma Gateway configurations
 gateway:
   ########## Global settings
@@ -164,14 +164,17 @@ gateway:
       ## The name must be unique
       ## List of middleware name
       middlewares:
-        - google-auth
-        - auth
-        - path: /order
-          #Enables basic authorization
-          # Protect path with a basic authentication
-          basic:
-            username: goma
-            password: goma
+        # path to protect
+        - path: /user/account
+          # Rules defines which specific middleware applies to a route path
+          rules:
+            - auth
+        # path to protect
+        - path: /cart
+          # Rules defines which specific middleware applies to a route path
+          rules:
+            - google-auth
+            - auth
         - path: /history
           http:
             url: http://security-service:8080/security/authUser
