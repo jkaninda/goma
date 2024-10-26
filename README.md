@@ -33,8 +33,10 @@ Goma is a lightweight API Gateway and Reverse Proxy.
   - [x] Basic-Auth
   - [ ] OAuth2
 - [x] Implement rate limiting
-  - [x] In-Memory Token Bucket
-  - [ ] Distributed Rate Limiting for Token based across multiple instances
+  - [x] In-Memory Token Bucket based
+  - [ ] In-Memory client IP based
+  - [ ] Distributed Rate Limiting for Token based across multiple instances using Redis
+  - [ ] Distributed Rate Limiting for In-Memory client IP based across multiple instances  using Redis
 
 ## Usage
 
@@ -97,7 +99,7 @@ Create a config file in this format
 
 Example of configuration file
 ```yaml
-## Goma - simple lightweight API Gateway and Reverse Proxy.
+### Goma - simple lightweight API Gateway and Reverse Proxy.
 # Goma Gateway configurations
 gateway:
   ########## Global settings
@@ -144,6 +146,13 @@ gateway:
       disableHeaderXForward: false
       # Internal healthCheck
       healthCheck: /internal/health/ready
+      # Proxy route HTTP Cors
+      cors:
+        headers:
+          Access-Control-Allow-Methods: 'GET'
+          Access-Control-Allow-Headers: 'Origin, Authorization, Accept, Content-Type, Access-Control-Allow-Headers, X-Client-Id, X-Session-Id'
+          Access-Control-Allow-Credentials: 'true'
+          Access-Control-Max-Age: 1728000
       #### Define route blocklist paths
       blocklist:
         - /swagger-ui/*
@@ -151,27 +160,12 @@ gateway:
         - /api-docs/*
         - /internal/*
         - /actuator/*
-      ##### Define route middlewares
+      ##### Define route middlewares from middlewares names
+      ## The name must be unique
+      ## List of middlewares name
       middlewares:
-        - path: /cart
-          #Enables authorization based on the result of a subrequest and sets the URI to which the subrequest will be sent.
-          # Protect path with a JWT authentication
-          http:
-            url: http://security-service:8080/security/authUser
-            # Required headers, if not present in the request, the proxy will block access
-            requiredHeaders:
-              - Authorization
-            #Sets the request variable to the given value after the authorization request completes.
-            #
-            # Add header to the next request from AuthRequest header, depending on your requirements
-            # Key is AuthRequest's response header Key, and value is Request's header Key
-            # In case you want to get headers from Authentication service and inject them to the next request's headers
-            headers:
-              userId: X-Auth-UserId
-              userCountryId: X-Auth-UserCountryId
-            # In case you want to get headers from Authentication service and inject them to next request's params
-            params:
-              auth_userCountryId: countryId
+        - google-auth
+        - auth
         - path: /order
           #Enables basic authorization
           # Protect path with a basic authentication
@@ -205,6 +199,41 @@ gateway:
       cors: {}
       blocklist: []
       middlewares: []
+
+#Defines proxy middlewares
+middlewares:
+  # Enable Basic auth authorization based
+  - name: local-auth-basic
+    # Authentication types | jwt, basic, auth0
+    type: basic
+    rule:
+      username: admin
+      password: admin
+  #Enables JWT authorization based on the result of a request and continue the request.
+  - name: google-auth
+    # Authentication types | jwt, basic, auth0
+    type: jwt
+    rule:
+      url: https://www.googleapis.com/auth/userinfo.email
+      # Required headers, if not present in the request, the proxy will return 403
+      requiredHeaders:
+        - Authorization
+      #Sets the request variable to the given value after the authorization request completes.
+      #
+      # Add header to the next request from AuthRequest header, depending on your requirements
+      # Key is AuthRequest's response header Key, and value is Request's header Key
+      # In case you want to get headers from the Authentication service and inject them to the next request's headers
+      #Sets the request variable to the given value after the authorization request completes.
+      #
+      # Add header to the next request from AuthRequest header, depending on your requirements
+      # Key is AuthRequest's response header Key, and value is Request's header Key
+      # In case you want to get headers from Authentication service and inject them to the next request's headers
+      headers:
+        userId: X-Auth-UserId
+        userCountryId: X-Auth-UserCountryId
+      # In case you want to get headers from Authentication service and inject them to the next request's params
+      params:
+        auth_userCountryId: countryId
 ```
 
 ## Requirement
