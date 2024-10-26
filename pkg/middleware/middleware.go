@@ -190,6 +190,7 @@ func (basicAuth AuthBasic) AuthMiddleware(next http.Handler) http.Handler {
 		// Get the Authorization header
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
+			logger.Error("Proxy error, missing Authorization header")
 			w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
@@ -205,6 +206,7 @@ func (basicAuth AuthBasic) AuthMiddleware(next http.Handler) http.Handler {
 		}
 		// Check if the Authorization header contains "Basic" scheme
 		if !strings.HasPrefix(authHeader, "Basic ") {
+			logger.Error("Proxy error, missing Basic Authorization header")
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
 			err := json.NewEncoder(w).Encode(ProxyResponseError{
@@ -221,6 +223,7 @@ func (basicAuth AuthBasic) AuthMiddleware(next http.Handler) http.Handler {
 		// Decode the base64 encoded username:password string
 		payload, err := base64.StdEncoding.DecodeString(authHeader[len("Basic "):])
 		if err != nil {
+			logger.Error("Proxy error, missing Basic Authorization header")
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
 			err := json.NewEncoder(w).Encode(ProxyResponseError{

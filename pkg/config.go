@@ -216,6 +216,7 @@ func initConfig(configFile string) {
 			ErrorLog:                     "/dev/stderr",
 			DisableRouteHealthCheckError: false,
 			DisableDisplayRouteOnStart:   false,
+			RateLimiter:                  0,
 			Cors: Cors{
 				Origins: []string{"http://localhost:8080", "https://example.com"},
 				Headers: map[string]string{
@@ -246,6 +247,31 @@ func initConfig(configFile string) {
 					Rewrite:     "/health",
 					HealthCheck: "",
 					Blocklist:   []string{},
+					Cors:        Cors{},
+					Middlewares: []RouteMiddleware{
+						{
+							Path:  "/basic/auth",
+							Rules: []string{"basic-auth", "google-jwt"},
+						},
+					},
+				},
+			},
+		},
+		Middlewares: []Middleware{
+			{
+				Name: "basic-auth",
+				Type: "basic",
+				Rule: BasicRule{
+					Username: "goma",
+					Password: "goma",
+				},
+			}, {
+				Name: "google-jwt",
+				Type: "jwt",
+				Rule: JWTRuler{
+					URL:     "https://www.googleapis.com/auth/userinfo.email",
+					Headers: map[string]string{},
+					Params:  map[string]string{},
 				},
 			},
 		},
