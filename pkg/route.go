@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/jkaninda/goma/internal/logger"
 	"github.com/jkaninda/goma/pkg/middleware"
 	"time"
 )
 
 func (gatewayServer GatewayServer) Initialize() *mux.Router {
 	gateway := gatewayServer.gateway
+	//middlewares := gatewayServer.middlewares
 	r := mux.NewRouter()
 	heath := HealthCheckRoute{
 		DisableRouteHealthCheckError: gateway.DisableRouteHealthCheckError,
@@ -34,44 +36,13 @@ func (gatewayServer GatewayServer) Initialize() *mux.Router {
 		r.Use(blM.BlocklistMiddleware)
 		if route.Middlewares != nil {
 			for _, mid := range route.Middlewares {
-				secureRouter := r.PathPrefix(route.Path + mid.Path).Subrouter()
-				if mid.Http.URL != "" {
-					amw := middleware.AuthenticationMiddleware{
-						AuthURL:         mid.Http.URL,
-						RequiredHeaders: mid.Http.RequiredHeaders,
-						Headers:         mid.Http.Headers,
-						Params:          mid.Http.Params,
-					}
-					proxyRoute := ProxyRoute{
-						path:            route.Path,
-						rewrite:         route.Rewrite,
-						destination:     route.Destination,
-						disableXForward: route.DisableHeaderXForward,
-						cors:            route.Cors,
-					}
-					// Apply JWT authentication middleware
-					secureRouter.Use(amw.AuthMiddleware)
-					secureRouter.PathPrefix("/").Handler(proxyRoute.ProxyHandler()) // Proxy handler
-					secureRouter.PathPrefix("").Handler(proxyRoute.ProxyHandler())  // Proxy handler
-				} else {
-					if mid.Basic.Username != "" {
-						amw := middleware.BasicAuth{
-							Username: mid.Basic.Username,
-							Password: mid.Basic.Password,
-						}
-						proxyRoute := ProxyRoute{
-							path:            route.Path,
-							rewrite:         route.Rewrite,
-							destination:     route.Destination,
-							disableXForward: route.DisableHeaderXForward,
-							cors:            route.Cors,
-						}
-						// Apply basic authentication middleware
-						secureRouter.Use(amw.BasicAuthMiddleware())
-						secureRouter.Use(CORSHandler(route.Cors))
-						secureRouter.PathPrefix("/").Handler(proxyRoute.ProxyHandler()) // Proxy handler
-						secureRouter.PathPrefix("").Handler(proxyRoute.ProxyHandler())  // Proxy handler
-					}
+				logger.Info("MiddlewareName %s", mid.Path)
+				rules := mid.Rules
+				for _, rule := range rules {
+					//find rule from middleware lists
+
+					logger.Info("Rule %s", rule)
+
 				}
 
 			}

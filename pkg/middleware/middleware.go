@@ -51,8 +51,8 @@ type ProxyResponseError struct {
 	Message string `json:"message"`
 }
 
-// AuthenticationMiddleware  Define struct
-type AuthenticationMiddleware struct {
+// AuthJWT  Define struct
+type AuthJWT struct {
 	AuthURL         string
 	RequiredHeaders []string
 	Headers         map[string]string
@@ -64,8 +64,8 @@ type BlockListMiddleware struct {
 	List        []string
 }
 
-// BasicAuth  Define Basic auth
-type BasicAuth struct {
+// AuthBasic  Define Basic auth
+type AuthBasic struct {
 	Username string
 	Password string
 	Headers  map[string]string
@@ -73,7 +73,7 @@ type BasicAuth struct {
 }
 
 // AuthMiddleware function, which will be called for each request
-func (amw *AuthenticationMiddleware) AuthMiddleware(next http.Handler) http.Handler {
+func (amw *AuthJWT) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		for _, header := range amw.RequiredHeaders {
 			if r.Header.Get(header) == "" {
@@ -177,8 +177,8 @@ func (amw *AuthenticationMiddleware) AuthMiddleware(next http.Handler) http.Hand
 	})
 }
 
-// BasicAuthMiddleware checks for the Authorization header and verifies the credentials
-func (basicAuth BasicAuth) BasicAuthMiddleware() mux.MiddlewareFunc {
+// AuthMiddleware checks for the Authorization header and verifies the credentials
+func (basicAuth AuthBasic) AuthMiddleware() mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Get the Authorization header
