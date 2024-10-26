@@ -45,15 +45,23 @@ docker run --rm  --name goma \
  -v "${PWD}/config:/config" \
  jkaninda/goma config init --output /config/goma.yml
 ```
-### 2. Run
+### 2. Run server
 
 ```shell
 docker run --rm --name goma \
  -v "${PWD}/config:/config" \
  -p 80:80 \
- jkaninda/goma server --config /config/goma.yml
+ jkaninda/goma server
 ```
-### 3. Healthcheck
+
+### 3. Start server with a custom config
+```shell
+docker run --rm --name goma \
+ -v "${PWD}/config:/config" \
+ -p 80:80 \
+ jkaninda/goma server --config /config/config.yml
+```
+### 4. Healthcheck
 
 [http://localhost/health](http://localhost/health)
 
@@ -116,9 +124,8 @@ gateway:
       - https://example.com
       - https://dev.example.com
       - http://localhost:80
-    # Allowed headers
+    # Allowed headers are global for all routes
     headers:
-      Access-Control-Allow-Origin: "http://localhost:3000; https://examole.com"
       Access-Control-Allow-Headers: 'Origin, Authorization, Accept, Content-Type, Access-Control-Allow-Headers, X-Client-Id, X-Session-Id'
       Access-Control-Allow-Credentials: 'true'
       Access-Control-Max-Age: 1728000
@@ -137,15 +144,6 @@ gateway:
       disableHeaderXForward: false
       # Internal healthCheck
       healthCheck: /internal/health/ready
-      # Proxy route HTTP Cors
-      cors:
-        headers:
-          #Access-Control-Allow-Origin: "*"
-          Access-Control-Allow-Origin: "http://localhost:3000; https://exmaple.com"
-          #Access-Control-Allow-Methods: 'GET'
-          Access-Control-Allow-Headers: 'Origin, Authorization, Accept, Content-Type, Access-Control-Allow-Headers, X-Client-Id, X-Session-Id'
-          Access-Control-Allow-Credentials: 'true'
-          Access-Control-Max-Age: 1728000
       #### Define route blocklist paths
       blocklist:
         - /swagger-ui/*
