@@ -43,7 +43,7 @@ gateway:
       # [X-Forwarded-Host, X-Forwarded-For, Host, Scheme ]
       # It will not match the backend route, by default, it's disabled
       disableHeaderXForward: false
-      # Internal healthCheck
+      # Internal health check
       healthCheck: /internal/health/ready
       # Proxy route HTTP Cors
       cors:
@@ -61,7 +61,7 @@ gateway:
         - /actuator/*
       ##### Define route middlewares from middlewares names
       ## The name must be unique
-      ## List of middlewares name
+      ## List of middleware name
       middlewares:
         - google-auth
         - auth
@@ -108,7 +108,7 @@ middlewares:
     rule:
       username: admin
       password: admin
-  #Enables JWT authorization based on the result of a request and continue the request.
+  #Enables JWT authorization based on the result of a request and continues the request.
   - name: google-auth
     # Authentication types | jwt, basic, auth0
     type: jwt
@@ -121,15 +121,15 @@ middlewares:
       #
       # Add header to the next request from AuthRequest header, depending on your requirements
       # Key is AuthRequest's response header Key, and value is Request's header Key
-      # In case you want to get headers from the Authentication service and inject them to the next request's headers
+      # In case you want to get headers from the Authentication service and inject them into the next request's headers
       #Sets the request variable to the given value after the authorization request completes.
       #
       # Add header to the next request from AuthRequest header, depending on your requirements
       # Key is AuthRequest's response header Key, and value is Request's header Key
-      # In case you want to get headers from Authentication service and inject them to the next request's headers
+      # In case you want to get headers from the Authentication service and inject them into the next request's headers
       headers:
         userId: X-Auth-UserId
         userCountryId: X-Auth-UserCountryId
-      # In case you want to get headers from Authentication service and inject them to the next request's params
+      # In case you want to get headers from the Authentication service and inject them to the next request's params
       params:
         auth_userCountryId: countryId
