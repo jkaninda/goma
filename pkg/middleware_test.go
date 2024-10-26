@@ -13,6 +13,7 @@ const MidName = "google-jwt"
 var rules = []string{"fake", "jwt", "google-jwt"}
 
 func TestMiddleware(t *testing.T) {
+	TestInit(t)
 	middlewares := []Middleware{
 		{
 			Name: "basic-auth",
@@ -43,7 +44,7 @@ func TestMiddleware(t *testing.T) {
 }
 
 func TestReadMiddleware(t *testing.T) {
-
+	TestMiddleware(t)
 	middlewares := getMiddlewares(t)
 	middleware, err := searchMiddleware(rules, middlewares)
 	if err != nil {
