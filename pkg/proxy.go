@@ -62,6 +62,7 @@ func (proxyRoute ProxyRoute) ProxyHandler() http.HandlerFunc {
 			r.URL.Scheme = targetURL.Scheme
 			r.Header.Set("X-Forwarded-Host", r.Header.Get("Host"))
 			r.Header.Set("X-Forwarded-For", r.RemoteAddr)
+			r.Header.Set("X-Real-IP", r.RemoteAddr)
 			r.Host = targetURL.Host
 		}
 		// Create proxy
