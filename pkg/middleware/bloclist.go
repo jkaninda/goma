@@ -49,8 +49,8 @@ func isPathBlocked(requestPath, blockedPath string) bool {
 }
 
 // NewRateLimiter creates a new rate limiter with the specified refill rate and token capacity
-func NewRateLimiter(maxTokens int, refillRate time.Duration) *RateLimiter {
-	return &RateLimiter{
+func NewRateLimiter(maxTokens int, refillRate time.Duration) *TokenRateLimiter {
+	return &TokenRateLimiter{
 		tokens:     maxTokens,
 		maxTokens:  maxTokens,
 		refillRate: refillRate,
@@ -59,7 +59,7 @@ func NewRateLimiter(maxTokens int, refillRate time.Duration) *RateLimiter {
 }
 
 // Allow checks if a request is allowed based on the current token bucket
-func (rl *RateLimiter) Allow() bool {
+func (rl *TokenRateLimiter) Allow() bool {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
 

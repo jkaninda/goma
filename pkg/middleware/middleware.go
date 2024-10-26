@@ -13,16 +13,30 @@ import (
 	"time"
 )
 
-type Auth struct {
-	Token string
-	Url   string
-}
-type Middleware interface {
-	Basic(username, password string) error
-	Jwt(token string) error
-	Http(url string) error
-}
+// RateLimiter defines rate limit properties.
 type RateLimiter struct {
+	Requests  int
+	Window    time.Duration
+	ClientMap map[string]*Client
+	mu        sync.Mutex
+}
+
+// Client stores request count and window expiration for each client.
+type Client struct {
+	RequestCount int
+	ExpiresAt    time.Time
+}
+
+// NewRateLimiterWindow creates a new RateLimiter.
+func NewRateLimiterWindow(requests int, window time.Duration) *RateLimiter {
+	return &RateLimiter{
+		Requests:  requests,
+		Window:    window,
+		ClientMap: make(map[string]*Client),
+	}
+}
+
+type TokenRateLimiter struct {
 	tokens     int
 	maxTokens  int
 	refillRate time.Duration

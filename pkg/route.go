@@ -20,12 +20,11 @@ func (gatewayServer GatewayServer) Initialize() *mux.Router {
 	// Apply global Cors middlewares
 	r.Use(CORSHandler(gateway.Cors)) // Apply CORS middleware
 	if gateway.RateLimiter != 0 {
-		rateLimiter := middleware.NewRateLimiter(gateway.RateLimiter, time.Minute)
+		//rateLimiter := middleware.NewRateLimiter(gateway.RateLimiter, time.Minute)
+		limiter := middleware.NewRateLimiterWindow(gateway.RateLimiter, time.Minute) //  requests per minute
 		// Add rate limit middleware to all routes, if defined
-		r.Use(rateLimiter.RateLimitMiddleware())
+		r.Use(limiter.RateLimitMiddleware())
 	}
-
-	// Add Main route
 	for _, route := range gateway.Routes {
 		blM := middleware.BlockListMiddleware{
 			Path: route.Path,
