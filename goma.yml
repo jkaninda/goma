@@ -25,9 +25,8 @@ gateway:
       - https://example.com
       - https://dev.example.com
       - http://localhost:80
-    # Allowed headers
+    # Allowed headers are global for all routes
     headers:
-      Access-Control-Allow-Origin: "http://localhost:3000; https://examole.com"
       Access-Control-Allow-Headers: 'Origin, Authorization, Accept, Content-Type, Access-Control-Allow-Headers, X-Client-Id, X-Session-Id'
       Access-Control-Allow-Credentials: 'true'
       Access-Control-Max-Age: 1728000
@@ -49,9 +48,7 @@ gateway:
       # Proxy route HTTP Cors
       cors:
         headers:
-          #Access-Control-Allow-Origin: "*"
-          Access-Control-Allow-Origin: "http://localhost:3000; https://exmaple.com"
-          #Access-Control-Allow-Methods: 'GET'
+          Access-Control-Allow-Methods: 'GET'
           Access-Control-Allow-Headers: 'Origin, Authorization, Accept, Content-Type, Access-Control-Allow-Headers, X-Client-Id, X-Session-Id'
           Access-Control-Allow-Credentials: 'true'
           Access-Control-Max-Age: 1728000
