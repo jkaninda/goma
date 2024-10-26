@@ -14,7 +14,7 @@ var cfg *Gateway
 type Config struct {
 	file string
 }
-type BasicMiddle struct {
+type BasicRule struct {
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
 }
@@ -38,10 +38,10 @@ type Cors struct {
 	Headers map[string]string `yaml:"headers"`
 }
 
-// HttpMiddle authentication using HTTP GET method
+// JWTRuler authentication using HTTP GET method
 //
-// HttpMiddle contains the authentication details
-type HttpMiddle struct {
+// JWTRuler contains the authentication details
+type JWTRuler struct {
 	// URL contains the authentication URL, it supports HTTP GET method only.
 	URL string `yaml:"url"`
 	// RequiredHeaders , contains required before sending request to the backend.
@@ -64,16 +64,23 @@ type HttpMiddle struct {
 
 // Middleware defined the route middleware
 type Middleware struct {
-	//Path contains the protected route path
+	//Path contains the name of middleware and must be unique
+	Name string `yaml:"name"`
+	// Type contains authentication types
+	//
+	// basic, jwt, auth0, rateLimit
+	Type string `yaml:"type"`
+	// Rule contains rule type of
+	Rule interface{} `yaml:"rule"`
+}
+type MiddlewareName struct {
+	name string `yaml:"name"`
+}
+type RouteMiddleware struct {
+	//Path contains the path to protect
 	Path string `yaml:"path"`
-	// Http authentication using HTTP GET method
-	//
-	// Http contains the authentication details
-	Http HttpMiddle `yaml:"http"`
-	// Basic contains basic-auth authentication details
-	//
-	// Protects a route path with Basic-Auth
-	Basic BasicMiddle `yaml:"basic"`
+	//Rules defines which specific middleware applies to a route path
+	Rules []string `yaml:"rules"`
 }
 
 // Route defines gateway route
@@ -100,8 +107,8 @@ type Route struct {
 	HealthCheck string `yaml:"healthCheck"`
 	// Blocklist Defines route blacklist
 	Blocklist []string `yaml:"blocklist"`
-	// Middlewares Defines route middleware
-	Middlewares []Middleware `yaml:"middlewares"`
+	// Middlewares Defines route middleware from Middleware names
+	Middlewares []RouteMiddleware `yaml:"middlewares"`
 }
 
 // Gateway contains Goma Proxy Gateway's configs
@@ -116,7 +123,7 @@ type Gateway struct {
 	ReadTimeout int `yaml:"readTimeout" env:"GOMA_READ_TIMEOUT, overwrite"`
 	// IdleTimeout defines proxy idle timeout
 	IdleTimeout int `yaml:"idleTimeout" env:"GOMA_IDLE_TIMEOUT, overwrite"`
-	// RateLimiter Defines routes rateLimiter
+	// RateLimiter Defines number of request peer minute
 	RateLimiter                  int    `yaml:"rateLimiter" env:"GOMA_RATE_LIMITER, overwrite"`
 	AccessLog                    string `yaml:"accessLog" env:"GOMA_ACCESS_LOG, overwrite"`
 	ErrorLog                     string `yaml:"errorLog" env:"GOMA_ERROR_LOG=, overwrite"`
@@ -129,7 +136,8 @@ type Gateway struct {
 	Routes []Route `yaml:"routes"`
 }
 type GatewayConfig struct {
-	GatewayConfig Gateway `yaml:"gateway"`
+	GatewayConfig Gateway      `yaml:"gateway"`
+	Middlewares   []Middleware `yaml:"middlewares"`
 }
 
 // ErrorResponse represents the structure of the JSON error response
@@ -139,9 +147,8 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 }
 type GatewayServer struct {
-	gateway         Gateway
-	HealthyCallback func()
-	stop            chan struct{} // channel for waiting shutdown
+	gateway     Gateway
+	middlewares []Middleware
 }
 
 // New reads config file and returns Gateway
@@ -158,11 +165,8 @@ func (GatewayServer) New(configFile string) (*GatewayServer, error) {
 			return nil, fmt.Errorf("in file %q: %w", configFile, err)
 		}
 		return &GatewayServer{
-			stop:    make(chan struct{}),
-			gateway: c.GatewayConfig,
-			HealthyCallback: func() {
-				logger.Info("Healthcheck call back")
-			},
+			gateway:     c.GatewayConfig,
+			middlewares: c.Middlewares,
 		}, nil
 	}
 	logger.Error("configuration file not found: %v", configFile)
@@ -181,8 +185,8 @@ func (GatewayServer) New(configFile string) (*GatewayServer, error) {
 	logger.Info("Generating new configuration file...done")
 	logger.Info("Starting server with default configuration")
 	return &GatewayServer{
-		stop:    make(chan struct{}),
-		gateway: c.GatewayConfig,
+		gateway:     c.GatewayConfig,
+		middlewares: c.Middlewares,
 	}, nil
 	//return nil, fmt.Errorf("configuration file not found: %v", configFile)
 }
@@ -212,6 +216,7 @@ func initConfig(configFile string) {
 			ErrorLog:                     "/dev/stderr",
 			DisableRouteHealthCheckError: false,
 			DisableDisplayRouteOnStart:   false,
+			RateLimiter:                  0,
 			Cors: Cors{
 				Origins: []string{"http://localhost:8080", "https://example.com"},
 				Headers: map[string]string{
@@ -228,18 +233,10 @@ func initConfig(configFile string) {
 					Rewrite:     "/health",
 					HealthCheck: "",
 					Cors: Cors{
-						Origins: []string{"http://localhost:8080", "https://example.com"},
 						Headers: map[string]string{
 							"Access-Control-Allow-Headers":     "Origin, Authorization, Accept, Content-Type, Access-Control-Allow-Headers, X-Client-Id, X-Session-Id",
 							"Access-Control-Allow-Credentials": "true",
 							"Access-Control-Max-Age":           "1728000",
-						},
-					},
-					Middlewares: []Middleware{
-						{
-							Path:  "/admin",
-							Http:  HttpMiddle{},
-							Basic: BasicMiddle{},
 						},
 					},
 				},
@@ -249,16 +246,32 @@ func initConfig(configFile string) {
 					Destination: "http://localhost:8080",
 					Rewrite:     "/health",
 					HealthCheck: "",
-					Middlewares: []Middleware{
-						{},
-						{Path: "",
-							Basic: BasicMiddle{
-								Username: "goma",
-								Password: "goma",
-							},
+					Blocklist:   []string{},
+					Cors:        Cors{},
+					Middlewares: []RouteMiddleware{
+						{
+							Path:  "/basic/auth",
+							Rules: []string{"basic-auth", "google-jwt"},
 						},
 					},
-					Blocklist: []string{},
+				},
+			},
+		},
+		Middlewares: []Middleware{
+			{
+				Name: "basic-auth",
+				Type: "basic",
+				Rule: BasicRule{
+					Username: "goma",
+					Password: "goma",
+				},
+			}, {
+				Name: "google-jwt",
+				Type: "jwt",
+				Rule: JWTRuler{
+					URL:     "https://www.googleapis.com/auth/userinfo.email",
+					Headers: map[string]string{},
+					Params:  map[string]string{},
 				},
 			},
 		},
@@ -297,4 +310,34 @@ func (Gateway) Setup(conf string) *Gateway {
 	}
 	return &Gateway{}
 
+}
+func (middleware Middleware) name() {
+
+}
+func ToJWTRuler(input interface{}) (JWTRuler, error) {
+	jWTRuler := new(JWTRuler)
+	var bytes []byte
+	bytes, err := yaml.Marshal(input)
+	if err != nil {
+		return JWTRuler{}, fmt.Errorf("error marshalling yaml: %v", err)
+	}
+	err = yaml.Unmarshal(bytes, jWTRuler)
+	if err != nil {
+		return JWTRuler{}, fmt.Errorf("error unmarshalling yaml: %v", err)
+	}
+	return *jWTRuler, nil
+}
+
+func ToBasicAuth(input interface{}) (BasicRule, error) {
+	basicAuth := new(BasicRule)
+	var bytes []byte
+	bytes, err := yaml.Marshal(input)
+	if err != nil {
+		return BasicRule{}, fmt.Errorf("error marshalling yaml: %v", err)
+	}
+	err = yaml.Unmarshal(bytes, basicAuth)
+	if err != nil {
+		return BasicRule{}, fmt.Errorf("error unmarshalling yaml: %v", err)
+	}
+	return *basicAuth, nil
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/jkaninda/goma/internal/logger"
+	"github.com/jkaninda/goma/util"
 	"net/http"
 	"strings"
 	"time"
@@ -13,14 +14,14 @@ import (
 func (blockList BlockListMiddleware) BlocklistMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		for _, block := range blockList.List {
-			if isPathBlocked(r.URL.Path, parseURLPath(blockList.Path+block)) {
-				logger.Error("Proxy access to %s is forbidden", r.URL.Path)
+			if isPathBlocked(r.URL.Path, util.ParseURLPath(blockList.Path+block)) {
+				logger.Error("Access to %s is forbidden", r.URL.Path)
 				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusForbidden)
+				w.WriteHeader(http.StatusNotFound)
 				err := json.NewEncoder(w).Encode(ProxyResponseError{
 					Success: false,
-					Code:    http.StatusForbidden,
-					Message: fmt.Sprintf("Access to %s is forbidden", r.URL.Path),
+					Code:    http.StatusNotFound,
+					Message: fmt.Sprintf("Not found: %s", r.URL.Path),
 				})
 				if err != nil {
 					return
@@ -49,8 +50,8 @@ func isPathBlocked(requestPath, blockedPath string) bool {
 }
 
 // NewRateLimiter creates a new rate limiter with the specified refill rate and token capacity
-func NewRateLimiter(maxTokens int, refillRate time.Duration) *RateLimiter {
-	return &RateLimiter{
+func NewRateLimiter(maxTokens int, refillRate time.Duration) *TokenRateLimiter {
+	return &TokenRateLimiter{
 		tokens:     maxTokens,
 		maxTokens:  maxTokens,
 		refillRate: refillRate,
@@ -59,7 +60,7 @@ func NewRateLimiter(maxTokens int, refillRate time.Duration) *RateLimiter {
 }
 
 // Allow checks if a request is allowed based on the current token bucket
-func (rl *RateLimiter) Allow() bool {
+func (rl *TokenRateLimiter) Allow() bool {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
 
@@ -80,16 +81,4 @@ func (rl *RateLimiter) Allow() bool {
 
 	// Reject request if no tokens are available
 	return false
-}
-
-// parseURLPath returns a URL path
-func parseURLPath(urlPath string) string {
-	// Replace any double slashes with a single slash
-	urlPath = strings.ReplaceAll(urlPath, "//", "/")
-
-	// Ensure the path starts with a single leading slash
-	if !strings.HasPrefix(urlPath, "/") {
-		urlPath = "/" + urlPath
-	}
-	return urlPath
 }
