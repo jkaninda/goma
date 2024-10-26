@@ -3,6 +3,7 @@ package util
 import (
 	"os"
 	"strconv"
+	"strings"
 )
 
 // FileExists checks if the file does exist
@@ -59,4 +60,16 @@ func SetEnv(name, value string) {
 }
 func MergeSlices(slice1, slice2 []string) []string {
 	return append(slice1, slice2...)
+}
+
+// ParseURLPath returns a URL path
+func ParseURLPath(urlPath string) string {
+	// Replace any double slashes with a single slash
+	urlPath = strings.ReplaceAll(urlPath, "//", "/")
+
+	// Ensure the path starts with a single leading slash
+	if !strings.HasPrefix(urlPath, "/") {
+		urlPath = "/" + urlPath
+	}
+	return urlPath
 }

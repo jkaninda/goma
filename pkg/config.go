@@ -285,7 +285,7 @@ func (Gateway) Setup(conf string) *Gateway {
 	return &Gateway{}
 
 }
-func (receiver Middleware) name() {
+func (middleware Middleware) name() {
 
 }
 func ToJWTRuler(input interface{}) (JWTRuler, error) {

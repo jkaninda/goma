@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"github.com/jkaninda/goma/internal/logger"
-	"log"
 	"net/http"
 )
 
@@ -39,7 +38,7 @@ func CORSHandler(cors Cors) mux.MiddlewareFunc {
 
 // ProxyErrorHandler catches backend errors and returns a custom response
 func ProxyErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
-	log.Printf("Proxy error: %v", err)
+	logger.Error("Proxy error: %v", err)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusBadGateway)
 	err = json.NewEncoder(w).Encode(map[string]interface{}{
